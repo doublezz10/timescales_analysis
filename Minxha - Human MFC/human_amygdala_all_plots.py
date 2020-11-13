@@ -23,8 +23,9 @@ amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minx
 
 spikes = amy['spikes']
 
-all_means_amygdala = []
-amyg_taus = []
+all_means_amygdala_m = []
+amyg_taus_m = []
+amyg_failed_fits = []
 
 for unit in range(len(spikes)):
 
@@ -168,11 +169,12 @@ for unit in range(len(spikes)):
                 pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
                 
             except RuntimeError:
-                print("Error - curve_fit failed")
+                print("Error - curve_fit failed; unit %i" %unit)
+                amyg_failed_fits.append(unit)
             
-            amyg_taus.append(pars[1])
+            amyg_taus_m.append(pars[1])
             
-            all_means_amygdala.append(y_m)
+            all_means_amygdala_m.append(y_m)
             
             # plt.plot(x_m,y_m,'ro')
             # plt.xlabel('lag (ms)')
@@ -182,31 +184,31 @@ for unit in range(len(spikes)):
         
 #%% Take mean of all units
 
-all_means_amygdala = np.vstack(all_means_amygdala)
+all_means_amygdala_m = np.vstack(all_means_amygdala_m)
 
-mean_amygdala = np.mean(all_means_amygdala,axis=0)
-sd_amygdala = np.std(all_means_amygdala,axis=0)
-se_amygdala = sd_amygdala/np.sqrt(len(mean_amygdala))
+mean_amygdala_m = np.mean(all_means_amygdala_m,axis=0)
+sd_amygdala_m = np.std(all_means_amygdala_m,axis=0)
+se_amygdala_m = sd_amygdala_m/np.sqrt(len(mean_amygdala_m))
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-pars_amy,cov = curve_fit(func,x_m,mean_amygdala,p0=[1,100,1],bounds=((0,np.inf)))
+pars_amy_m,cov = curve_fit(func,x_m,mean_amygdala_m,p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,mean_amygdala,label='original data')
-plt.plot(x_m,func(x_m,*pars_amy),label='fit curve')
+plt.plot(x_m,mean_amygdala_m,label='original data')
+plt.plot(x_m,func(x_m,*pars_amy_m),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Mean of all human amygdala units')
-plt.text(710,0.04,'tau = %i' %pars_amy[1])
+plt.title('Faraut human amygdala units \n Minxha')
+plt.text(710,0.04,'tau = %i' %pars_amy_m[1])
 plt.ylim((0,0.07))
 plt.show()
 
 #%% Histogram of taus
 
-plt.hist(amyg_taus)
+plt.hist(amyg_taus_m)
 plt.xlabel('tau')
 plt.ylabel('count')
-plt.title('%i human amygdala units' %len(amyg_taus))
+plt.title('%i human amygdala units \n Minxha' %len(amyg_taus_m))
 plt.show()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov 11 10:37:56 2020
+Created on Fri Nov 13 15:24:09 2020
 
 @author: zachz
 """
@@ -17,14 +17,14 @@ from scipy.optimize import curve_fit
 
 #%% Load in data
 
-hc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minxha - Human MFC/hippocampus.mat',simplify_cells=True)
+hc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Faraut - Human MTL/faraut_hc.mat',simplify_cells=True)
 
 #%% Extract spiking data from one brain area
 
 spikes = hc['spikes']
 
-all_means_hc_m = []
-hc_taus_m = []
+all_means_hc_f = []
+hc_taus_f = []
 
 for unit in range(len(spikes)):
 
@@ -169,9 +169,9 @@ for unit in range(len(spikes)):
             except RuntimeError:
                 print("Error - curve_fit failed")
             
-            hc_taus_m.append(pars[1])
+            hc_taus_f.append(pars[1])
             
-            all_means_hc_m.append(y_m)
+            all_means_hc_f.append(y_m)
             
             # plt.plot(x_m,y_m,'ro')
             # plt.xlabel('lag (ms)')
@@ -181,30 +181,30 @@ for unit in range(len(spikes)):
         
 #%% Take mean of all units
 
-all_means_hc_m = np.vstack(all_means_hc_m)
+all_means_hc_f = np.vstack(all_means_hc_f)
 
-mean_hc_m = np.mean(all_means_hc_m,axis=0)
-sd_hc_m = np.std(all_means_hc_m,axis=0)
-se_hc_m = sd_hc_m/np.sqrt(len(mean_hc_m))
+mean_hc_f = np.mean(all_means_hc_f,axis=0)
+sd_hc_f = np.std(all_means_hc_f,axis=0)
+se_hc_f = sd_hc_f/np.sqrt(len(mean_hc_f))
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-pars_hc_m,cov = curve_fit(func,x_m,mean_hc_m,p0=[1,100,1],bounds=((0,np.inf)))
+pars_hc_f,cov = curve_fit(func,x_m,mean_hc_f,p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,mean_hc_m,label='original data')
-plt.plot(x_m,func(x_m,*pars_hc_m),label='fit curve')
+plt.plot(x_m,mean_hc_f,label='original data')
+plt.plot(x_m,func(x_m,*pars_hc_f),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Mean of all human hippocampus units \n Minxha')
-plt.text(710,0.03,'tau = %i' %pars_hc_m[1])
+plt.title('Mean of all human hippocampus units \n Faraut')
+plt.text(710,0.075,'tau = %i' %pars_hc_f[1])
 plt.show()
 
 #%% Histogram of taus
 
-plt.hist(hc_taus_m)
+plt.hist(hc_taus_f)
 plt.xlabel('tau')
 plt.ylabel('count')
-plt.title('%i human hippocampus units \n Minxha' %len(hc_taus_m))
+plt.title('%i human hippocampus units \n Faraut' %len(hc_taus_f))
 plt.show()

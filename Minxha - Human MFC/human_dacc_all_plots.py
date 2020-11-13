@@ -25,6 +25,7 @@ spikes = dacc['spikes']
 
 all_means_dacc = []
 dacc_taus = []
+dacc_failed_fits = []
 
 for unit in range(len(spikes)):
 
@@ -43,6 +44,8 @@ for unit in range(len(spikes)):
             binned_unit_spikes.append(binned)
             
         binned_unit_spikes = np.vstack(binned_unit_spikes)
+        
+        # Here, filter for 1 spike in each bin and avg firing rate >1Hz
         
         #%% Do autocorrelation
         
@@ -169,6 +172,7 @@ for unit in range(len(spikes)):
                 
             except RuntimeError:
                 print("Error - curve_fit failed")
+                dacc_failed_fits.append(unit)
             
             dacc_taus.append(pars[1])
             
@@ -208,4 +212,58 @@ plt.hist(dacc_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
 plt.title('%i human dACC units' %len(dacc_taus))
+plt.show()
+
+#%% How many units show initial incresae vs decrease
+
+first_diff_dacc = []
+second_diff_dacc = []
+
+units = np.size(all_means_dacc,0)
+
+for unit in range(units):
+    
+    first_diff_dacc.append(all_means_dacc[unit,0]-all_means_dacc[unit,1])
+    second_diff_dacc.append(all_means_dacc[unit,1]-all_means_dacc[unit,2])
+    
+plt.hist(first_diff_dacc,label='first diff')
+plt.hist(second_diff_dacc,label='second diff')
+plt.ylabel('count')
+plt.title('dACC')
+plt.legend()
+plt.show()
+
+#%% Plot autocorrelation curves for units with a positive vs negative difference between first and second lags
+
+pos_first_diff = []
+neg_first_diff = []
+
+fig,axs = plt.subplots(1,2,sharey=True)
+
+for unit in range(units):
+    
+    if first_diff_dacc[unit] <= 0:
+        
+        neg_first_diff.append(unit)
+        
+    else:
+        
+        pos_first_diff.append(unit)
+        
+for dec_unit in range(len(neg_first_diff)):
+    
+    axs[0].plot(x_m,all_means_dacc[neg_first_diff[dec_unit]])
+    
+axs[0].set_title('%i dACC units with \n initial increase' %len(neg_first_diff))
+axs[0].set_ylabel('autocorrelation')
+axs[0].set_xlabel('lag (ms)')
+
+for inc_unit in range(len(pos_first_diff)):
+    
+   axs[1].plot(x_m,all_means_dacc[pos_first_diff[inc_unit]])
+    
+axs[1].set_title('%i dACC units with \n initial decrease' % len(pos_first_diff))
+
+plt.xlabel('lag (ms)')
+plt.tight_layout()
 plt.show()
