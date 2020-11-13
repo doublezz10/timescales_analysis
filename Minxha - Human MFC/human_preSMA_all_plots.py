@@ -17,11 +17,14 @@ from scipy.optimize import curve_fit
 
 #%% Load in data
 
-preSMA = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minxha - Human MFC/preSMA.mat',simplify_cells=True)
+presma = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minxha - Human MFC/preSMA.mat',simplify_cells=True)
 
 #%% Extract spiking data from one brain area
 
-spikes = preSMA['spikes']
+spikes = presma['spikes']
+
+all_means_presma = []
+presma_taus = []
 
 for unit in range(len(spikes)):
 
@@ -66,13 +69,13 @@ for unit in range(len(spikes)):
             
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
             
-            plt.imshow(correlation_matrix)
-            plt.title('Human pre-SMA unit %i' %unit)
-            plt.xlabel('lag')
-            plt.ylabel('lag')
-            plt.xticks(range(0,19))
-            plt.yticks(range(0,19))
-            plt.show()
+            # plt.imshow(correlation_matrix)
+            # plt.title('Human amygdala unit %i' %unit)
+            # plt.xlabel('lag')
+            # plt.ylabel('lag')
+            # plt.xticks(range(0,19))
+            # plt.yticks(range(0,19))
+            # plt.show()
             
             #%% Fit exponential decay
             
@@ -99,24 +102,13 @@ for unit in range(len(spikes)):
             # plt.ylabel('autocorrelation')
             # plt.xlabel('lag (ms)')
             
-            #%% Remove 0 lag time
+            #%% Remove 0 lag time and sort values for curve fitting
             
             no_1_corr = np.delete(new_corr,np.where(new_corr>=0.9))
             no_1_corr = no_1_corr[~ np.isnan(no_1_corr)]
             no_0_lag = np.delete(new_lag,np.where(new_lag==0))
             
             no_0_lag = no_0_lag * 50
-            
-            plt.scatter(no_0_lag,no_1_corr)
-            plt.title('Human pre-SMA unit %i' %unit)
-            plt.xlabel('lag (ms)')
-            plt.ylabel('autocorrelation')
-            plt.show()
-            
-            #%% get means and std
-            
-            from statistics import mean, stdev
-            from itertools import groupby
             
             x = no_0_lag
             y = no_1_corr
@@ -125,6 +117,30 @@ for unit in range(len(spikes)):
             y = np.array(y, dtype=float)
             
             sorted_pairs = sorted((i,j) for i,j in zip(x,y))
+            
+            x_s = []
+            y_s = []
+            
+            for q in range(len(sorted_pairs)):
+                x_q = sorted_pairs[q][0]
+                y_q = sorted_pairs[q][1]
+    
+                x_s.append(x_q)
+                y_s.append(y_q)
+            
+            x_s = np.array(x_s)
+            y_s = np.array(y_s)
+            
+            # plt.plot(x_s,y_s,'ro')
+            # plt.title('Human preSMA unit %i' %unit)
+            # plt.xlabel('lag (ms)')
+            # plt.ylabel('autocorrelation')
+            # plt.show()
+            
+            #%% get means and std
+            
+            from statistics import mean, stdev
+            from itertools import groupby
             
             grouper = groupby(sorted_pairs, key=lambda x: x[0])
             #The next line is again more elegant, but slower:
@@ -144,16 +160,51 @@ for unit in range(len(spikes)):
             x_m = np.array(x_m)
             y_m = np.array(y_m)
             
-            # def func(x,a,tau,b):
-            #     return a*((np.exp(-x/tau))+b)
-
-            # pars,cov = curve_fit(func,x,y)
+            def func(x,a,tau,b):
+                return a*((np.exp(-x/tau))+b)
             
-            plt.plot(x_m,y_m,'ro',label='original data')
-            # plt.plot(x_m,func(x_m,*pars), label='fit')
-            plt.legend(loc='upper right')
-            plt.xlabel('lag (ms)')
-            plt.ylabel('mean autocorrelation')
-            plt.title('Human pre-SMA %i' %unit)
-            plt.show()
+            try:
+                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                
+            except RuntimeError:
+                print("Error - curve_fit failed")
+            
+            presma_taus.append(pars[1])
+            
+            all_means_presma.append(y_m)
+            
+            # plt.plot(x_m,y_m,'ro')
+            # plt.xlabel('lag (ms)')
+            # plt.ylabel('mean autocorrelation')
+            # plt.title('Human preSMA %i' %unit)
+            # plt.show()
         
+#%% Take mean of all units
+
+all_means_presma = np.vstack(all_means_presma)
+
+mean_presma = np.mean(all_means_presma,axis=0)
+sd_presma = np.std(all_means_presma,axis=0)
+se_presma = sd_presma/np.sqrt(len(mean_presma))
+
+def func(x,a,tau,b):
+    return a*((np.exp(-x/tau))+b)
+
+pars_presma,cov = curve_fit(func,x_m,mean_presma,p0=[1,100,1],bounds=((0,np.inf)))
+
+plt.plot(x_m,mean_presma,label='original data')
+plt.plot(x_m,func(x_m,*pars_presma),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('mean autocorrelation')
+plt.title('Mean of all human preSMA units')
+plt.text(710,0.05,'tau = %i' %pars_presma[1])
+plt.show()
+
+#%% Histogram of taus
+
+plt.hist(presma_taus)
+plt.xlabel('tau')
+plt.ylabel('count')
+plt.title('%i human preSMA units' %len(presma_taus))
+plt.show()
