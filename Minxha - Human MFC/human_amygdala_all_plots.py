@@ -27,6 +27,11 @@ all_means_amygdala_m = []
 amyg_taus_m = []
 amyg_failed_fits = []
 
+
+failed_autocorr = []
+no_spikes_in_a_bin = []
+low_fr = []
+
 for unit in range(len(spikes)):
 
         this_unit = spikes[unit]
@@ -45,6 +50,8 @@ for unit in range(len(spikes)):
             
         binned_unit_spikes = np.vstack(binned_unit_spikes)
         
+        summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
+        
         #%% Do autocorrelation
         
         one_autocorrelation = []
@@ -62,9 +69,17 @@ for unit in range(len(spikes)):
                 
         if np.isnan(one_autocorrelation).any() == True:
             
-            pass
+            failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
         
-        else:
+        elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))]:
+            
+            no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+        
+        elif np.sum(summed_spikes_per_bin) < 1:
+            
+            low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+        
+        else:              
                 
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
             
@@ -181,6 +196,14 @@ for unit in range(len(spikes)):
             # plt.ylabel('mean autocorrelation')
             # plt.title('Human amygdala %i' %unit)
             # plt.show()
+            
+                    
+#%% How many units got filtered?
+
+bad_units = len(failed_autocorr) + len(no_spikes_in_a_bin) + len(low_fr)
+
+print('%i units were filtered out' %bad_units)
+print('out of %i total units' %len(spikes))
         
 #%% Take mean of all units
 

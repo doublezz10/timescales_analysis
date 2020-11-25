@@ -26,6 +26,10 @@ all_means_amygdala_meg = []
 amyg_taus_meg = []
 amyg_failed_fits = []
 
+failed_autocorr = []
+no_spikes_in_a_bin = []
+low_fr = []
+
 for unit in range(len(spikes)):
 
         this_unit = spikes[unit]
@@ -44,6 +48,8 @@ for unit in range(len(spikes)):
             
         binned_unit_spikes = np.vstack(binned_unit_spikes)
         
+        summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
+        
         #%% Do autocorrelation
         
         one_autocorrelation = []
@@ -61,7 +67,15 @@ for unit in range(len(spikes)):
                 
         if np.isnan(one_autocorrelation).any() == True:
             
-            pass
+            failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+        
+        # elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))]:
+            
+        #     no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+        
+        elif np.sum(summed_spikes_per_bin) < 1:
+            
+            low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
         
         else:
                 
@@ -160,27 +174,49 @@ for unit in range(len(spikes)):
             x_m = np.array(x_m)
             y_m = np.array(y_m)
             
+            # Only start fitting when slope is decreasing
+            
+            diff = np.diff(x_m)
+            
+            neg_diffs = []
+            
+            for dif in range(len(diff)):
+                
+                if diff[dif] >= 0:
+                    
+                    neg_diffs.append(diff[dif])
+                    
+            first_neg_diff = np.min(neg_diffs)
+            
             def func(x,a,tau,b):
                 return a*((np.exp(-x/tau))+b)
 
-
             try:
-                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
                 
             except RuntimeError:
-                print("Error - curve_fit failed; unit %i" %unit)
+                print("Error - curve_fit failed")
                 amyg_failed_fits.append(unit)
             
             amyg_taus_meg.append(pars[1])
             
             all_means_amygdala_meg.append(y_m)
             
-            # plt.plot(x_m,y_m,'ro')
-            # plt.xlabel('lag (ms)')
-            # plt.ylabel('mean autocorrelation')
-            # plt.title('Human amygdala %i' %unit)
-            # plt.show()
+            plt.plot(x_m,y_m,'ro',label='original data')
+            plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+            plt.xlabel('lag (ms)')
+            plt.ylabel('mean autocorrelation')
+            plt.title('Monkey amygdala %i' %unit)
+            plt.legend()
+            plt.show()
         
+#%% How many units got filtered?
+
+bad_units = len(failed_autocorr) + len(no_spikes_in_a_bin) + len(low_fr)
+
+print('%i units were filtered out' %bad_units)
+print('out of %i total units' %len(spikes))
+
 #%% Take mean of all units
 
 all_means_amygdala_meg = np.vstack(all_means_amygdala_meg)

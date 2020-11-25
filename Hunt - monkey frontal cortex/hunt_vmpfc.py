@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov 11 10:37:56 2020
+Created on Wed Nov 25 15:36:38 2020
 
 @author: zachz
 """
@@ -15,37 +15,43 @@ from scipy.optimize import curve_fit
 
 #%% Load in data
 
-dacc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minxha - Human MFC/dACC.mat',simplify_cells=True)
+vmpfc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Hunt - monkey frontal cortex/hunt_vmpfc.mat',simplify_cells=True)
 
 #%% Extract spiking data from one brain area
 
-spikes = dacc['spikes']
 
-all_means_dacc = []
-dacc_taus = []
-dacc_failed_fits = []
 
-dacc_no_autocorr = []
-dacc_no_spikes_in_a_bin = []
-dacc_low_fr = []
+spikes = vmpfc['fixation']
+        
+all_means_vmpfc_monkey = []
+vmpfc_taus_monkey = []
+vmpfc_failed_fits = []
+
+vmpfc_no_autocorr_monkey = []
+vmpfc_no_spikes_in_a_bin_monkey = []
+vmpfc_low_fr_monkey = []
+        
+binsize = 50
+
+#%%
 
 for unit in range(len(spikes)):
-
-        this_unit = spikes[unit]
+    
+        this_unit = np.vstack(spikes[unit])
         
-        # Bin spikes from first second in 50 ms bins
-        
-        bins = np.arange(0,1,step=0.05)
+        [rows,cols] = this_unit.shape
         
         binned_unit_spikes = []
         
-        for trial in range(len(this_unit)):
-            
-            binned, bin_edges = np.histogram(this_unit[trial],bins=bins)
-            
-            binned_unit_spikes.append(binned)
-            
-        binned_unit_spikes = np.vstack(binned_unit_spikes)
+        for trials in range(0,rows):
+            trial_spikes = []
+            for times in range(0,550,binsize):
+                spikes_ = np.sum(this_unit[trials,times:times+binsize])
+                trial_spikes.append(spikes_)
+            binned_unit_spikes.append(trial_spikes)
+        binned_unit_spikes = np.array(binned_unit_spikes)
+        binned_unit_spikes = binned_unit_spikes[:,:-1]
+
         
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
         
@@ -65,22 +71,23 @@ for unit in range(len(spikes)):
                 one_autocorrelation.append(correlation)
                 
         if np.isnan(one_autocorrelation).any() == True:
-            # If any autocorrelation fails (nan), skip this unit
-            dacc_no_autocorr.append(unit)
+            
+            vmpfc_no_autocorr_monkey.append(unit)
             
         # elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))]:
-            # If there is not a spike in every bin
-        #     dacc_no_spikes_in_a_bin.append(unit)
+            
+        #     vmpfc_no_spikes_in_a_bin_monkey.append(unit)
             
         elif np.sum(summed_spikes_per_bin) < 1:
-            # If firing rate < 1hz
-            dacc_low_fr.append(unit)
+            
+            vmpfc_low_fr_monkey.append(unit)
         
         else:
+                
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
             
-            correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
-            
+            correlation_matrix = np.reshape(one_autocorrelation,(-1,10))
+           
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
             # plt.xlabel('lag')
@@ -94,14 +101,14 @@ for unit in range(len(spikes)):
             # shift correlation matrix over so that all 1's are at x=0
             new_corr = []
             
-            for i in range(18):
+            for i in range(8):
                 new_corr.append(correlation_matrix[i,i:])
                 
             new_corr = np.array(new_corr)
             
             new_lag = []
             
-            for i in range(19,0,-1):
+            for i in range(9,0,-1):
                 new_lag.append(np.array(range(i)))
             
             new_lag = np.array(new_lag)
@@ -144,7 +151,7 @@ for unit in range(len(spikes)):
             y_s = np.array(y_s)
             
             # plt.plot(x_s,y_s,'ro')
-            # plt.title('Human dACC unit %i' %unit)
+            # plt.title('Human vmpfc unit %i' %unit)
             # plt.xlabel('lag (ms)')
             # plt.ylabel('autocorrelation')
             # plt.show()
@@ -182,7 +189,7 @@ for unit in range(len(spikes)):
                 
                 if diff[dif] >= 0:
                     
-                    neg_diffs.append(diff[dif])
+                    neg_diffs.append(dif)
                     
             first_neg_diff = np.min(neg_diffs)
             
@@ -194,73 +201,78 @@ for unit in range(len(spikes)):
                 
             except RuntimeError:
                 print("Error - curve_fit failed")
-                dacc_failed_fits.append(unit)
+                vmpfc_failed_fits.append(unit)
             
-            dacc_taus.append(pars[1])
+            vmpfc_taus_monkey.append(pars[1])
             
-            all_means_dacc.append(y_m)
+            all_means_vmpfc_monkey.append(y_m)
             
             plt.plot(x_m,y_m,'ro',label='original data')
             plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
             plt.xlabel('lag (ms)')
             plt.ylabel('mean autocorrelation')
-            plt.title('Human dACC %i' %unit)
+            plt.title('Monkey vmpfc %i' %unit)
             plt.legend()
             plt.show()
         
-        
-#%% How many units didn't fit?
-
-bad_units_dacc = len(dacc_no_autocorr) + len(dacc_no_spikes_in_a_bin) + len(dacc_low_fr)
-print('%i units filtered pre-fitting' %bad_units_dacc)
-print('out of %i total units' %len(spikes))
-
 #%% Take mean of all units
 
-all_means_dacc = np.vstack(all_means_dacc)
+all_means_vmpfc_monkey = np.vstack(all_means_vmpfc_monkey)
 
-mean_dacc = np.mean(all_means_dacc,axis=0)
-sd_dacc = np.std(all_means_dacc,axis=0)
-se_dacc = sd_dacc/np.sqrt(len(mean_dacc))
+mean_vmpfc = np.mean(all_means_vmpfc_monkey,axis=0)
+sd_vmpfc = np.std(all_means_vmpfc_monkey,axis=0)
+se_vmpfc = sd_vmpfc/np.sqrt(len(mean_vmpfc))
+
+mean_diff = np.diff(mean_vmpfc)
+
+neg_mean_diffs = []
+
+for diff in range(len(mean_diff)):
+    
+    if mean_diff[diff] >= 0:
+        
+        neg_mean_diffs.append(diff)
+        
+first_neg_mean_diff = np.min(neg_mean_diffs)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-pars_dacc,cov = curve_fit(func,x_m,mean_dacc,p0=[1,100,1],bounds=((0,np.inf)))
+pars_vmpfc,cov = curve_fit(func,x_m[first_neg_mean_diff:],mean_vmpfc[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,mean_dacc,label='original data')
-plt.plot(x_m,func(x_m,*pars_dacc),label='fit curve')
+plt.plot(x_m,mean_vmpfc,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*pars_vmpfc),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Mean of all human dACC units')
-plt.text(710,0.055,'tau = %i' %pars_dacc[1])
+plt.title('Mean of all monkey vmpfc units')
+plt.text(100,0.03,'tau = %i' %pars_vmpfc[1])
 plt.show()
 
 #%% Histogram of taus
 
-plt.hist(dacc_taus)
+plt.hist(vmpfc_taus_monkey)
 plt.xlabel('tau')
 plt.ylabel('count')
-plt.title('%i human dACC units' %len(dacc_taus))
+plt.title('%i monkey vmpfc units' %len(vmpfc_taus_monkey))
 plt.show()
 
 #%% How many units show initial incresae vs decrease
 
-# first_diff_dacc = []
-# second_diff_dacc = []
+# first_diff_vmpfc = []
+# second_diff_vmpfc = []
 
-# units = np.size(all_means_dacc,0)
+# units = np.size(all_means_vmpfc_monkey,0)
 
 # for unit in range(units):
     
-#     first_diff_dacc.append(all_means_dacc[unit,0]-all_means_dacc[unit,1])
-#     second_diff_dacc.append(all_means_dacc[unit,1]-all_means_dacc[unit,2])
+#     first_diff_vmpfc.append(all_means_vmpfc_monkey[unit,0]-all_means_vmpfc_monkey[unit,1])
+#     second_diff_vmpfc.append(all_means_vmpfc_monkey[unit,1]-all_means_vmpfc_monkey[unit,2])
     
-# plt.hist(first_diff_dacc,label='first diff')
-# plt.hist(second_diff_dacc,label='second diff')
+# plt.hist(first_diff_vmpfc,label='first diff')
+# plt.hist(second_diff_vmpfc,label='second diff')
 # plt.ylabel('count')
-# plt.title('dACC')
+# plt.title('vmpfc')
 # plt.legend()
 # plt.show()
 
@@ -273,7 +285,7 @@ plt.show()
 
 # for unit in range(units):
     
-#     if first_diff_dacc[unit] <= 0:
+#     if first_diff_vmpfc[unit] <= 0:
         
 #         neg_first_diff.append(unit)
         
@@ -283,17 +295,17 @@ plt.show()
         
 # for dec_unit in range(len(neg_first_diff)):
     
-#     axs[0].plot(x_m,all_means_dacc[neg_first_diff[dec_unit]])
+#     axs[0].plot(x_m,all_means_vmpfc_monkey[neg_first_diff[dec_unit]])
     
-# axs[0].set_title('%i dACC units with \n initial increase' %len(neg_first_diff))
+# axs[0].set_title('%i vmpfc units with \n initial increase' %len(neg_first_diff))
 # axs[0].set_ylabel('autocorrelation')
 # axs[0].set_xlabel('lag (ms)')
 
 # for inc_unit in range(len(pos_first_diff)):
     
-#    axs[1].plot(x_m,all_means_dacc[pos_first_diff[inc_unit]])
+#    axs[1].plot(x_m,all_means_vmpfc_monkey[pos_first_diff[inc_unit]])
     
-# axs[1].set_title('%i dACC units with \n initial decrease' % len(pos_first_diff))
+# axs[1].set_title('%i vmpfc units with \n initial decrease' % len(pos_first_diff))
 
 # plt.xlabel('lag (ms)')
 # plt.tight_layout()
