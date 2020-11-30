@@ -208,13 +208,13 @@ for unit in range(len(spikes)):
 
             hunt_vmpfc_all_means.append(y_m)
 
-            plt.plot(x_m,y_m,'ro',label='original data')
-            plt.plot(x_m,func(x_m,*pars),label='fit')
-            plt.xlabel('lag (ms)')
-            plt.ylabel('mean autocorrelation')
-            plt.title('Monkey vmpfc %i' %unit)
-            plt.legend()
-            plt.show()
+            # plt.plot(x_m,y_m,'ro',label='original data')
+            # plt.plot(x_m,func(x_m,*pars),label='fit')
+            # plt.xlabel('lag (ms)')
+            # plt.ylabel('mean autocorrelation')
+            # plt.title('Monkey vmpfc %i' %unit)
+            # plt.legend()
+            # plt.show()
 
 #%% Take mean of all units
 
@@ -239,7 +239,7 @@ first_neg_mean_diff = np.min(neg_mean_diffs)
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-hunt_vmpfc_pars,cov = curve_fit(func,x_m,mean_vmpfc)
+hunt_vmpfc_pars,cov = curve_fit(func,x_m,mean_vmpfc,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
 plt.plot(x_m,mean_vmpfc,label='original data')
 plt.plot(x_m,func(x_m,*hunt_vmpfc_pars),label='fit curve')

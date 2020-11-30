@@ -208,13 +208,13 @@ for unit in range(len(spikes)):
 
             hunt_dlpfc_all_means.append(y_m)
 
-            plt.plot(x_m,y_m,'ro',label='original data')
-            plt.plot(x_m,func(x_m,*pars),label='fit')
-            plt.xlabel('lag (ms)')
-            plt.ylabel('mean autocorrelation')
-            plt.title('Monkey dlpfc %i' %unit)
-            plt.legend()
-            plt.show()
+            # plt.plot(x_m,y_m,'ro',label='original data')
+            # plt.plot(x_m,func(x_m,*pars),label='fit')
+            # plt.xlabel('lag (ms)')
+            # plt.ylabel('mean autocorrelation')
+            # plt.title('Monkey dlpfc %i' %unit)
+            # plt.legend()
+            # plt.show()
 
 #%% Take mean of all units
 
@@ -247,7 +247,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all monkey dlpfc units')
-plt.text(100,0.095,'tau = %i' %hunt_dlpfc_pars[1])
+plt.text(100,0.060,'tau = %i' %hunt_dlpfc_pars[1])
 plt.show()
 
 #%% Histogram of taus

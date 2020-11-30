@@ -208,13 +208,13 @@ for unit in range(len(spikes)):
 
             hunt_ofc_all_means.append(y_m)
 
-            plt.plot(x_m,y_m,'ro',label='original data')
-            plt.plot(x_m,func(x_m,*pars),label='fit')
-            plt.xlabel('lag (ms)')
-            plt.ylabel('mean autocorrelation')
-            plt.title('Monkey ofc %i' %unit)
-            plt.legend()
-            plt.show()
+            # plt.plot(x_m,y_m,'ro',label='original data')
+            # plt.plot(x_m,func(x_m,*pars),label='fit')
+            # plt.xlabel('lag (ms)')
+            # plt.ylabel('mean autocorrelation')
+            # plt.title('Monkey ofc %i' %unit)
+            # plt.legend()
+            # plt.show()
 
 #%% Take mean of all units
 
@@ -239,7 +239,7 @@ first_neg_mean_diff = np.min(neg_mean_diffs)
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-hunt_ofc_pars,cov = curve_fit(func,x_m,mean_ofc)
+hunt_ofc_pars,cov = curve_fit(func,x_m,mean_ofc,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
 plt.plot(x_m,mean_ofc,label='original data')
 plt.plot(x_m,func(x_m,*hunt_ofc_pars),label='fit curve')
