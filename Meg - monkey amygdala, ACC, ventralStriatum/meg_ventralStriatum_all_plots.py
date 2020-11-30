@@ -198,7 +198,7 @@ for unit in range(len(spikes)):
                 return a*((np.exp(-x/tau))+b)
 
             try:
-                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
             except RuntimeError:
                 print("Error - curve_fit failed")
@@ -209,10 +209,10 @@ for unit in range(len(spikes)):
             meg_vs_all_means.append(y_m)
 
             plt.plot(x_m,y_m,'ro',label='original data')
-            plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+            plt.plot(x_m,func(x_m,*pars),label='fit')
             plt.xlabel('lag (ms)')
             plt.ylabel('mean autocorrelation')
-            plt.title('Monkey vsdala %i' %unit)
+            plt.title('Monkey vStriatum %i' %unit)
             plt.legend()
             plt.show()
 
@@ -241,7 +241,7 @@ plt.plot(x_m,func(x_m,*meg_vs_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Mean of all monkey vsdala units \n Meg')
+plt.title('Mean of all monkey vStriatum units \n Meg')
 plt.text(710,0.053,'tau = %i' %meg_vs_pars[1])
 plt.show()
 
@@ -250,5 +250,5 @@ plt.show()
 plt.hist(meg_vs_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
-plt.title('%i monkey vsdala units \n Meg' %len(meg_vs_taus))
+plt.title('%i monkey vStriatum units \n Meg' %len(meg_vs_taus))
 plt.show()

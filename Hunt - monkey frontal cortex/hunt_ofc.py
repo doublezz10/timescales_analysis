@@ -198,7 +198,7 @@ for unit in range(len(spikes)):
                 return a*((np.exp(-x/tau))+b)
 
             try:
-                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
             except RuntimeError:
                 print("Error - curve_fit failed")
@@ -209,7 +209,7 @@ for unit in range(len(spikes)):
             hunt_ofc_all_means.append(y_m)
 
             plt.plot(x_m,y_m,'ro',label='original data')
-            plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+            plt.plot(x_m,func(x_m,*pars),label='fit')
             plt.xlabel('lag (ms)')
             plt.ylabel('mean autocorrelation')
             plt.title('Monkey ofc %i' %unit)
@@ -239,15 +239,15 @@ first_neg_mean_diff = np.min(neg_mean_diffs)
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-pars_ofc,cov = curve_fit(func,x_m[first_neg_mean_diff:],mean_ofc[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+hunt_ofc_pars,cov = curve_fit(func,x_m,mean_ofc)
 
 plt.plot(x_m,mean_ofc,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*pars_ofc),label='fit curve')
+plt.plot(x_m,func(x_m,*hunt_ofc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all monkey ofc units')
-plt.text(100,0.06,'tau = %i' %pars_ofc[1])
+plt.text(100,0.06,'tau = %i' %hunt_ofc_pars[1])
 plt.show()
 
 #%% Histogram of taus

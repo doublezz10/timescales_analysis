@@ -198,7 +198,7 @@ for unit in range(len(spikes)):
                 return a*((np.exp(-x/tau))+b)
 
             try:
-                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
             except RuntimeError:
                 print("Error - curve_fit failed")
@@ -209,7 +209,7 @@ for unit in range(len(spikes)):
             meg_amyg_all_means.append(y_m)
 
             plt.plot(x_m,y_m,'ro',label='original data')
-            plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+            plt.plot(x_m,func(x_m,*pars),label='fit')
             plt.xlabel('lag (ms)')
             plt.ylabel('mean autocorrelation')
             plt.title('Monkey amygdala %i' %unit)
