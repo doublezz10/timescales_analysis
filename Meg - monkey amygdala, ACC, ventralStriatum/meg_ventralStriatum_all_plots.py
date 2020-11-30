@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov 13 16:11:18 2020
+Created on Mon Nov 30 15:32:16 2020
 
 @author: zachz
 """
@@ -16,21 +16,21 @@ from scipy.optimize import curve_fit
 
 #%% Load in data
 
-amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Meg - monkey/meg_amygdala.mat',simplify_cells=True)
+vs = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Meg - monkey/meg_ventralStriatum.mat',simplify_cells=True)
 
 #%% Extract spiking data from one brain area
 
-spikes = amy['spikes']/1000
+spikes = vs['spikes']/1000
 
-meg_amyg_all_means = []
-meg_amyg_taus = []
-meg_amyg_failed_fits = []
+meg_vs_all_means = []
+meg_vs_taus = []
+meg_vs_failed_fits = []
 
-meg_amyg_failed_autocorr = []
-meg_amyg_no_spikes_in_a_bin = []
-meg_amyg_low_fr = []
+meg_vs_failed_autocorr = []
+meg_vs_no_spikes_in_a_bin = []
+meg_vs_low_fr = []
 
-meg_amyg_avg_fr = []
+meg_vs_avg_fr = []
 
 for unit in range(len(spikes)):
 
@@ -49,12 +49,12 @@ for unit in range(len(spikes)):
             binned_unit_spikes.append(binned)
 
         binned_unit_spikes = np.vstack(binned_unit_spikes)
-        
+
         [trials,bins] = binned_unit_spikes.shape
 
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
-        
-        meg_amyg_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+
+        meg_vs_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
         #%% Do autocorrelation
 
@@ -73,15 +73,15 @@ for unit in range(len(spikes)):
 
         if np.isnan(one_autocorrelation).any() == True:
 
-            meg_amyg_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+            meg_vs_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
         elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
             # If there is not a spike in every bin
-            meg_amyg_no_spikes_in_a_bin.append(unit)
-            
+            meg_vs_no_spikes_in_a_bin.append(unit)
+
         elif np.sum(summed_spikes_per_bin) < 1:
 
-            meg_amyg_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+            meg_vs_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
         else:
 
@@ -90,7 +90,7 @@ for unit in range(len(spikes)):
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
 
             # plt.imshow(correlation_matrix)
-            # plt.title('Human amygdala unit %i' %unit)
+            # plt.title('Human vsdala unit %i' %unit)
             # plt.xlabel('lag')
             # plt.ylabel('lag')
             # plt.xticks(range(0,19))
@@ -152,7 +152,7 @@ for unit in range(len(spikes)):
             y_s = np.array(y_s)
 
             # plt.plot(x_s,y_s,'ro')
-            # plt.title('Human amygdala unit %i' %unit)
+            # plt.title('Human vsdala unit %i' %unit)
             # plt.xlabel('lag (ms)')
             # plt.ylabel('autocorrelation')
             # plt.show()
@@ -202,53 +202,53 @@ for unit in range(len(spikes)):
 
             except RuntimeError:
                 print("Error - curve_fit failed")
-                meg_amyg_failed_fits.append(unit)
+                meg_vs_failed_fits.append(unit)
 
-            meg_amyg_taus.append(pars[1])
+            meg_vs_taus.append(pars[1])
 
-            meg_amyg_all_means.append(y_m)
+            meg_vs_all_means.append(y_m)
 
             plt.plot(x_m,y_m,'ro',label='original data')
             plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
             plt.xlabel('lag (ms)')
             plt.ylabel('mean autocorrelation')
-            plt.title('Monkey amygdala %i' %unit)
+            plt.title('Monkey vsdala %i' %unit)
             plt.legend()
             plt.show()
 
 #%% How many units got filtered?
 
-meg_amyg_bad_units = len(meg_amyg_failed_autocorr) + len(meg_amyg_no_spikes_in_a_bin) + len(meg_amyg_low_fr)
+meg_vs_bad_units = len(meg_vs_failed_autocorr) + len(meg_vs_no_spikes_in_a_bin) + len(meg_vs_low_fr)
 
-print('%i units were filtered out' %meg_amyg_bad_units)
+print('%i units were filtered out' %meg_vs_bad_units)
 print('out of %i total units' %len(spikes))
 
 #%% Take mean of all units
 
-meg_amyg_all_means = np.vstack(meg_amyg_all_means)
+meg_vs_all_means = np.vstack(meg_vs_all_means)
 
-meg_amyg_mean = np.mean(meg_amyg_all_means,axis=0)
-meg_amyg_sd = np.std(meg_amyg_all_means,axis=0)
-meg_amyg_se = meg_amyg_sd/np.sqrt(len(meg_amyg_mean))
+meg_vs_mean = np.mean(meg_vs_all_means,axis=0)
+meg_vs_sd = np.std(meg_vs_all_means,axis=0)
+meg_vs_se = meg_vs_sd/np.sqrt(len(meg_vs_mean))
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-meg_amyg_pars,cov = curve_fit(func,x_m,meg_amyg_mean,p0=[1,100,1],bounds=((0,np.inf)))
+meg_vs_pars,cov = curve_fit(func,x_m,meg_vs_mean,p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,meg_amyg_mean,label='original data')
-plt.plot(x_m,func(x_m,*meg_amyg_pars),label='fit curve')
+plt.plot(x_m,meg_vs_mean,label='original data')
+plt.plot(x_m,func(x_m,*meg_vs_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Mean of all monkey amygdala units \n Meg')
-plt.text(710,0.053,'tau = %i' %meg_amyg_pars[1])
+plt.title('Mean of all monkey vsdala units \n Meg')
+plt.text(710,0.053,'tau = %i' %meg_vs_pars[1])
 plt.show()
 
 #%% Histogram of taus
 
-plt.hist(meg_amyg_taus)
+plt.hist(meg_vs_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
-plt.title('%i monkey amygdala units \n Meg' %len(meg_amyg_taus))
+plt.title('%i monkey vsdala units \n Meg' %len(meg_vs_taus))
 plt.show()
