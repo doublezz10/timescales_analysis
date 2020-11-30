@@ -26,9 +26,11 @@ spikes = hc['spikes']
 all_means_hc_m = []
 hc_taus_m = []
 
-failed_autocorr = []
-no_spikes_in_a_bin = []
-low_fr = []
+hc_failed_autocorr = []
+hc_no_spikes_in_a_bin = []
+hc_low_fr = []
+
+hc_avg_fr = []
 
 for unit in range(len(spikes)):
 
@@ -48,13 +50,15 @@ for unit in range(len(spikes)):
             
         binned_unit_spikes = np.vstack(binned_unit_spikes)
         
+        [trials,bins] = binned_unit_spikes.shape
+        
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
+        
+        hc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
         
         #%% Do autocorrelation
         
         one_autocorrelation = []
-        
-        [trials,bins] = binned_unit_spikes.shape
         
         for i in range(bins):
             for j in range(bins):
@@ -67,15 +71,15 @@ for unit in range(len(spikes)):
                 
         if np.isnan(one_autocorrelation).any() == True:
             
-            failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+            hc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
         
-        elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))]:
-            
-            no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+        elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
+            # If there is not a spike in every bin
+            hc_no_spikes_in_a_bin.append(unit)
         
-        elif np.sum(summed_spikes_per_bin) < 1:
+        elif np.sum(summed_spikes_per_bin)/trials < 1:
             
-            low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+            hc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
         
         else:
                 
@@ -195,7 +199,7 @@ for unit in range(len(spikes)):
         
 #%% How many units got filtered?
 
-bad_units = len(failed_autocorr) + len(no_spikes_in_a_bin) + len(low_fr)
+bad_units = len(hc_failed_autocorr) + len(hc_no_spikes_in_a_bin) + len(hc_low_fr)
 
 print('%i units were filtered out' %bad_units)
 print('out of %i total units' %len(spikes))

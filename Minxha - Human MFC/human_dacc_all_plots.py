@@ -29,6 +29,10 @@ dacc_no_autocorr = []
 dacc_no_spikes_in_a_bin = []
 dacc_low_fr = []
 
+dacc_avg_fr = []
+
+all_binned_spikes = []
+
 for unit in range(len(spikes)):
 
         this_unit = spikes[unit]
@@ -47,7 +51,11 @@ for unit in range(len(spikes)):
             
         binned_unit_spikes = np.vstack(binned_unit_spikes)
         
+        [trials,bins] = binned_unit_spikes.shape
+        
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
+        
+        dacc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
         
         #%% Do autocorrelation
         
@@ -67,12 +75,12 @@ for unit in range(len(spikes)):
         if np.isnan(one_autocorrelation).any() == True:
             # If any autocorrelation fails (nan), skip this unit
             dacc_no_autocorr.append(unit)
-            
-        # elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))]:
+  
+        elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
             # If there is not a spike in every bin
-        #     dacc_no_spikes_in_a_bin.append(unit)
+            dacc_no_spikes_in_a_bin.append(unit)
             
-        elif np.sum(summed_spikes_per_bin) < 1:
+        elif np.sum(summed_spikes_per_bin)/trials < 1:
             # If firing rate < 1hz
             dacc_low_fr.append(unit)
         
@@ -186,11 +194,13 @@ for unit in range(len(spikes)):
                     
             first_neg_diff = np.min(neg_diffs)
             
+            first_neg_diff = int(first_neg_diff)
+            
             def func(x,a,tau,b):
                 return a*((np.exp(-x/tau))+b)
 
             try:
-                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
                 
             except RuntimeError:
                 print("Error - curve_fit failed")
@@ -200,13 +210,13 @@ for unit in range(len(spikes)):
             
             all_means_dacc.append(y_m)
             
-            plt.plot(x_m,y_m,'ro',label='original data')
-            plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
-            plt.xlabel('lag (ms)')
-            plt.ylabel('mean autocorrelation')
-            plt.title('Human dACC %i' %unit)
-            plt.legend()
-            plt.show()
+            # plt.plot(x_m,y_m,'ro',label='original data')
+            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+            # plt.xlabel('lag (ms)')
+            # plt.ylabel('mean autocorrelation')
+            # plt.title('Human dACC %i' %unit)
+            # plt.legend()
+            # plt.show()
         
         
 #%% How many units didn't fit?

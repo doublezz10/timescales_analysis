@@ -27,9 +27,11 @@ all_means_amygdala_f = []
 amyg_taus_f = []
 amyg_failed_fits = []
 
-failed_autocorr = []
-no_spikes_in_a_bin = []
-low_fr = []
+f_amyg_failed_autocorr = []
+f_amyg_no_spikes_in_a_bin = []
+f_amyg_low_fr = []
+
+f_amyg_avg_fr = []
 
 for unit in range(len(spikes)):
 
@@ -49,13 +51,15 @@ for unit in range(len(spikes)):
             
         binned_unit_spikes = np.vstack(binned_unit_spikes)
         
+        [trials,bins] = binned_unit_spikes.shape
+        
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
+        
+        f_amyg_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
         
         #%% Do autocorrelation
         
         one_autocorrelation = []
-        
-        [trials,bins] = binned_unit_spikes.shape
         
         for i in range(bins):
             for j in range(bins):
@@ -68,15 +72,15 @@ for unit in range(len(spikes)):
                 
         if np.isnan(one_autocorrelation).any() == True:
             
-            failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+            f_amyg_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
         
         elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))]:
             
-            no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+            f_amyg_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
         
         elif np.sum(summed_spikes_per_bin) < 1:
             
-            low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+            f_amyg_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
         
         else:
                 
@@ -198,7 +202,7 @@ for unit in range(len(spikes)):
         
 #%% How many units got filtered?
 
-bad_units = len(failed_autocorr) + len(no_spikes_in_a_bin) + len(low_fr)
+bad_units = len(f_amyg_failed_autocorr) + len(f_amyg_no_spikes_in_a_bin) + len(f_amyg_low_fr)
 
 print('%i units were filtered out' %bad_units)
 print('out of %i total units' %len(spikes))

@@ -30,6 +30,8 @@ vmpfc_failed_fits = []
 vmpfc_no_autocorr_monkey = []
 vmpfc_no_spikes_in_a_bin_monkey = []
 vmpfc_low_fr_monkey = []
+
+vmpfc_avg_fr = []
         
 binsize = 50
 
@@ -51,9 +53,10 @@ for unit in range(len(spikes)):
             binned_unit_spikes.append(trial_spikes)
         binned_unit_spikes = np.array(binned_unit_spikes)
         binned_unit_spikes = binned_unit_spikes[:,:-1]
-
-        
+       
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
+        
+        vmpfc_avg_fr.append(np.sum(summed_spikes_per_bin)/rows)
         
         #%% Do autocorrelation
         
@@ -74,9 +77,9 @@ for unit in range(len(spikes)):
             
             vmpfc_no_autocorr_monkey.append(unit)
             
-        # elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))]:
-            
-        #     vmpfc_no_spikes_in_a_bin_monkey.append(unit)
+        elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
+            # If there is not a spike in every bin
+            vmpfc_no_spikes_in_a_bin_monkey.append(unit)
             
         elif np.sum(summed_spikes_per_bin) < 1:
             
@@ -256,57 +259,3 @@ plt.xlabel('tau')
 plt.ylabel('count')
 plt.title('%i monkey vmpfc units' %len(vmpfc_taus_monkey))
 plt.show()
-
-#%% How many units show initial incresae vs decrease
-
-# first_diff_vmpfc = []
-# second_diff_vmpfc = []
-
-# units = np.size(all_means_vmpfc_monkey,0)
-
-# for unit in range(units):
-    
-#     first_diff_vmpfc.append(all_means_vmpfc_monkey[unit,0]-all_means_vmpfc_monkey[unit,1])
-#     second_diff_vmpfc.append(all_means_vmpfc_monkey[unit,1]-all_means_vmpfc_monkey[unit,2])
-    
-# plt.hist(first_diff_vmpfc,label='first diff')
-# plt.hist(second_diff_vmpfc,label='second diff')
-# plt.ylabel('count')
-# plt.title('vmpfc')
-# plt.legend()
-# plt.show()
-
-#%% Plot autocorrelation curves for units with a positive vs negative difference between first and second lags
-
-# pos_first_diff = []
-# neg_first_diff = []
-
-# fig,axs = plt.subplots(1,2,sharey=True)
-
-# for unit in range(units):
-    
-#     if first_diff_vmpfc[unit] <= 0:
-        
-#         neg_first_diff.append(unit)
-        
-#     else:
-        
-#         pos_first_diff.append(unit)
-        
-# for dec_unit in range(len(neg_first_diff)):
-    
-#     axs[0].plot(x_m,all_means_vmpfc_monkey[neg_first_diff[dec_unit]])
-    
-# axs[0].set_title('%i vmpfc units with \n initial increase' %len(neg_first_diff))
-# axs[0].set_ylabel('autocorrelation')
-# axs[0].set_xlabel('lag (ms)')
-
-# for inc_unit in range(len(pos_first_diff)):
-    
-#    axs[1].plot(x_m,all_means_vmpfc_monkey[pos_first_diff[inc_unit]])
-    
-# axs[1].set_title('%i vmpfc units with \n initial decrease' % len(pos_first_diff))
-
-# plt.xlabel('lag (ms)')
-# plt.tight_layout()
-# plt.show()

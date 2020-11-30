@@ -53,17 +53,22 @@ fig, axs = plt.subplots(2, 2, sharex=True, sharey=True,figsize=(8,6))
 
 axs[0,0].hist(np.log(amyg_taus_m))
 axs[0,0].set_title('amygdala - Minxha')
+axs[0,0].text(-10,150,'n_units %i' %len(amyg_taus_m))
 
 axs[0,1].hist(np.log(hc_taus_m))
 axs[0,1].set_title('hippocampus - Minxha')
+axs[0,1].text(-10,150,'n_units %i' %len(hc_taus_m))
 
 axs[1,0].hist(np.log(amyg_taus_f))
 axs[1,0].set_title('amygdala - Faraut')
+axs[1,0].text(-10,150,'n_units %i' %len(amyg_taus_f))
 
 axs[1,1].hist(np.log(hc_taus_f))
 axs[1,1].set_title('hippocampus - Faraut')
+axs[1,1].text(-10,150,'n_units %i' %len(hc_taus_f))
 
 fig.add_subplot(111,frame_on=False)
+
 plt.tick_params(labelcolor="none", bottom=False, left=False)
 
 plt.xlabel("log(tau)")

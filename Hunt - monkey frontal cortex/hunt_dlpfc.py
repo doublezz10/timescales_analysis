@@ -30,6 +30,8 @@ dlpfc_failed_fits = []
 dlpfc_no_autocorr_monkey = []
 dlpfc_no_spikes_in_a_bin_monkey = []
 dlpfc_low_fr_monkey = []
+
+dlpfc_avg_fr = []
         
 binsize = 50
 
@@ -52,8 +54,9 @@ for unit in range(len(spikes)):
         binned_unit_spikes = np.array(binned_unit_spikes)
         binned_unit_spikes = binned_unit_spikes[:,:-1]
 
-        
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
+        
+        dlpfc_avg_fr.append(np.sum(summed_spikes_per_bin)/rows)
         
         #%% Do autocorrelation
         
@@ -74,9 +77,9 @@ for unit in range(len(spikes)):
             
             dlpfc_no_autocorr_monkey.append(unit)
             
-        # elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))]:
-            
-        #     dlpfc_no_spikes_in_a_bin_monkey.append(unit)
+        elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
+            # If there is not a spike in every bin
+            dlpfc_no_spikes_in_a_bin_monkey.append(unit)
             
         elif np.sum(summed_spikes_per_bin) < 1:
             
