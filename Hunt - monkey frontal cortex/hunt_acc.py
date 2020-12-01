@@ -236,17 +236,33 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
+sorted_pairs = sorted((i,j) for i,j in zip(x_m,mean_acc))
+
+x_s = []
+y_s = []
+
+for q in range(len(sorted_pairs)):
+    x_q = sorted_pairs[q][0]
+    y_q = sorted_pairs[q][1]
+    
+    x_s.append(x_q)
+    y_s.append(y_q)
+    
+x_s = np.array(x_s)
+y_s = np.array(y_s)
+
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-hunt_acc_pars,cov = curve_fit(func,x_m,mean_acc,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+hunt_acc_pars,cov = curve_fit(func,x_s,y_s,p0=[0,100,0],bounds=((0,np.inf)),maxfev=5000)
 
-plt.plot(x_m,mean_acc,label='original data')
-plt.plot(x_m,func(x_m,*hunt_acc_pars),label='fit curve')
+plt.plot(x_s,y_s,label='original data')
+plt.plot(x_s,func(x_s,*hunt_acc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Mean of all monkey acc units')
+plt.title('Mean of all monkey acc units \n Hunt')
 plt.text(100,0.095,'tau = %i' %hunt_acc_pars[1])
 plt.show()
 
@@ -255,7 +271,7 @@ plt.show()
 plt.hist(hunt_acc_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
-plt.title('%i monkey acc units' %len(hunt_acc_taus))
+plt.title('%i monkey acc units \n Hunt' %len(hunt_acc_taus))
 plt.show()
 
 #%% How many units show initial incresae vs decrease

@@ -208,13 +208,13 @@ for unit in range(len(spikes)):
 
             meg_vs_all_means.append(y_m)
 
-            plt.plot(x_m,y_m,'ro',label='original data')
-            plt.plot(x_m,func(x_m,*pars),label='fit')
-            plt.xlabel('lag (ms)')
-            plt.ylabel('mean autocorrelation')
-            plt.title('Monkey vStriatum %i' %unit)
-            plt.legend()
-            plt.show()
+            # plt.plot(x_m,y_m,'ro',label='original data')
+            # plt.plot(x_m,func(x_m,*pars),label='fit')
+            # plt.xlabel('lag (ms)')
+            # plt.ylabel('mean autocorrelation')
+            # plt.title('Monkey vStriatum %i' %unit)
+            # plt.legend()
+            # plt.show()
 
 #%% How many units got filtered?
 
