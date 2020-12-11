@@ -15,20 +15,21 @@ from scipy.optimize import curve_fit
 
 #%% Load in data
 
-hc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minxha - Human MFC/hippocampus.mat',simplify_cells=True)
+presma = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minxha - Human MFC/preSMA.mat',simplify_cells=True)
 
 #%% Extract spiking data from one brain area
 
-spikes = hc['spikes']
+spikes = presma['spikes']
 
-minxha_hc_all_means = []
-minxha_hc_taus = []
+minxha_presma_all_means = []
+minxha_presma_taus = []
 
-minxha_hc_failed_autocorr = []
-minxha_hc_no_spikes_in_a_bin = []
-minxha_hc_low_fr = []
+minxha_presma_failed_autocorr = []
+minxha_presma_no_spikes_in_a_bin = []
+minxha_presma_low_fr = []
 
-minxha_hc_avg_fr = []
+minxha_presma_avg_fr = []
+minxha_presma_correlation_matrices = []
 
 for unit in range(len(spikes)):
 
@@ -52,7 +53,7 @@ for unit in range(len(spikes)):
 
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
 
-        minxha_hc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+        minxha_presma_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
         #%% Do autocorrelation
 
@@ -69,21 +70,23 @@ for unit in range(len(spikes)):
 
         if np.isnan(one_autocorrelation).any() == True:
 
-            minxha_hc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+            minxha_presma_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
         elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
             # If there is not a spike in every bin
-            minxha_hc_no_spikes_in_a_bin.append(unit)
+            minxha_presma_no_spikes_in_a_bin.append(unit)
 
         elif np.sum(summed_spikes_per_bin)/trials < 1:
 
-            minxha_hc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+            minxha_presma_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
         else:
 
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
+
+            minxha_presma_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
@@ -148,7 +151,7 @@ for unit in range(len(spikes)):
             y_s = np.array(y_s)
 
             # plt.plot(x_s,y_s,'ro')
-            # plt.title('Human hippocampus unit %i' %unit)
+            # plt.title('Human preSMA unit %i' %unit)
             # plt.xlabel('lag (ms)')
             # plt.ylabel('autocorrelation')
             # plt.show()
@@ -185,49 +188,61 @@ for unit in range(len(spikes)):
             except RuntimeError:
                 print("Error - curve_fit failed")
 
-            minxha_hc_taus.append(pars[1])
+            minxha_presma_taus.append(pars[1])
 
-            minxha_hc_all_means.append(y_m)
+            minxha_presma_all_means.append(y_m)
 
             # plt.plot(x_m,y_m,'ro')
             # plt.xlabel('lag (ms)')
             # plt.ylabel('mean autocorrelation')
-            # plt.title('Human hippocampus %i' %unit)
+            # plt.title('Human preSMA %i' %unit)
             # plt.show()
 
 #%% How many units got filtered?
 
-bad_units = len(minxha_hc_failed_autocorr) + len(minxha_hc_no_spikes_in_a_bin) + len(minxha_hc_low_fr)
+minxha_presma_bad_units = len(minxha_presma_failed_autocorr) + len(minxha_presma_no_spikes_in_a_bin) + len(minxha_presma_low_fr)
 
-print('%i units were filtered out' %bad_units)
+print('%i units were filtered out' %minxha_presma_bad_units)
 print('out of %i total units' %len(spikes))
 
 #%% Take mean of all units
 
-minxha_hc_all_means = np.vstack(minxha_hc_all_means)
+minxha_presma_all_means = np.vstack(minxha_presma_all_means)
 
-minxha_hc_mean = np.mean(minxha_hc_all_means,axis=0)
-minxha_hc_sd = np.std(minxha_hc_all_means,axis=0)
-minxha_hc_se = minxha_hc_sd/np.sqrt(len(minxha_hc_mean))
+minxha_presma_mean = np.mean(minxha_presma_all_means,axis=0)
+minxha_presma_sd = np.std(minxha_presma_all_means,axis=0)
+minxha_presma_se = minxha_presma_sd/np.sqrt(len(minxha_presma_mean))
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-minxha_hc_pars,cov = curve_fit(func,x_m,minxha_hc_mean,p0=[1,100,1],bounds=((0,np.inf)))
+minxha_presma_pars,cov = curve_fit(func,x_m,minxha_presma_mean,p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,minxha_hc_mean,label='original data')
-plt.plot(x_m,func(x_m,*minxha_hc_pars),label='fit curve')
+plt.plot(x_m,minxha_presma_mean,label='original data')
+plt.plot(x_m,func(x_m,*minxha_presma_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Mean of all human hippocampus units \n Minxha')
-plt.text(710,0.03,'tau = %i' %minxha_hc_pars[1])
+plt.title('Mean of all human preSMA units')
+plt.text(710,0.05,'tau = %i' %minxha_presma_pars[1])
 plt.show()
 
 #%% Histogram of taus
 
-plt.hist(minxha_hc_taus)
+plt.hist(minxha_presma_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
-plt.title('%i human hippocampus units \n Minxha' %len(minxha_hc_taus))
+plt.title('%i human preSMA units' %len(minxha_presma_taus))
+plt.show()
+
+#%% Correlation matrix
+
+minxha_presma_mean_matrix = np.mean(minxha_presma_correlation_matrices,axis=0)
+
+plt.imshow(minxha_presma_mean_matrix,cmap='inferno')
+plt.tight_layout()
+plt.title('Minxha Amygdala')
+plt.xlabel('lag (ms)')
+plt.ylabel('lag (ms)')
+plt.xticks(np.linspace(0,950,50))
 plt.show()

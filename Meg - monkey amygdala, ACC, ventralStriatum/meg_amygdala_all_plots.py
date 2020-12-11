@@ -31,6 +31,7 @@ meg_amyg_no_spikes_in_a_bin = []
 meg_amyg_low_fr = []
 
 meg_amyg_avg_fr = []
+meg_amyg_correlation_matrices = []
 
 for unit in range(len(spikes)):
 
@@ -49,11 +50,11 @@ for unit in range(len(spikes)):
             binned_unit_spikes.append(binned)
 
         binned_unit_spikes = np.vstack(binned_unit_spikes)
-        
+
         [trials,bins] = binned_unit_spikes.shape
 
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
-        
+
         meg_amyg_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
         #%% Do autocorrelation
@@ -78,7 +79,7 @@ for unit in range(len(spikes)):
         elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
             # If there is not a spike in every bin
             meg_amyg_no_spikes_in_a_bin.append(unit)
-            
+
         elif np.sum(summed_spikes_per_bin) < 1:
 
             meg_amyg_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
@@ -88,6 +89,8 @@ for unit in range(len(spikes)):
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
+
+            meg_amyg_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
@@ -251,4 +254,16 @@ plt.hist(meg_amyg_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
 plt.title('%i monkey amygdala units \n Meg' %len(meg_amyg_taus))
+plt.show()
+
+#%% Correlation matrix
+
+meg_amyg_mean_matrix = np.mean(meg_amyg_correlation_matrices,axis=0)
+
+plt.imshow(meg_amyg_mean_matrix,cmap='inferno')
+plt.tight_layout()
+plt.title('Meg amygdala')
+plt.xlabel('lag (ms)')
+plt.ylabel('lag (ms)')
+plt.xticks(np.linspace(0,950,50))
 plt.show()

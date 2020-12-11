@@ -30,6 +30,7 @@ hunt_acc_no_spikes_in_a_bin = []
 hunt_acc_low_fr = []
 
 hunt_acc_avg_fr = []
+hunt_acc_correlation_matrices = []
 
 binsize = 50
 
@@ -88,6 +89,8 @@ for unit in range(len(spikes)):
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,10))
+
+            hunt_acc_correlation_matrices.append(correlation_matrices)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
@@ -198,7 +201,7 @@ for unit in range(len(spikes)):
                 return a*((np.exp(-x/tau))+b)
 
             try:
-                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                pars,cov = curve_fit(func,x_m,y_m,p0=[0,100,0],bounds=(0,[1,1000,1]),maxfev=5000)
 
             except RuntimeError:
                 print("Error - curve_fit failed")
@@ -244,10 +247,10 @@ y_s = []
 for q in range(len(sorted_pairs)):
     x_q = sorted_pairs[q][0]
     y_q = sorted_pairs[q][1]
-    
+
     x_s.append(x_q)
     y_s.append(y_q)
-    
+
 x_s = np.array(x_s)
 y_s = np.array(y_s)
 
@@ -255,7 +258,7 @@ y_s = np.array(y_s)
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-hunt_acc_pars,cov = curve_fit(func,x_s,y_s,p0=[0,100,0],bounds=((0,np.inf)),maxfev=5000)
+hunt_acc_pars,cov = curve_fit(func,x_s,y_s,p0=[0,100,0],bounds=(0,[1,1000,1]),maxfev=5000)
 
 plt.plot(x_s,y_s,label='original data')
 plt.plot(x_s,func(x_s,*hunt_acc_pars),label='fit curve')
@@ -272,6 +275,17 @@ plt.hist(hunt_acc_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
 plt.title('%i monkey acc units \n Hunt' %len(hunt_acc_taus))
+plt.show()
+
+#%% Correlation matrix
+
+hunt_acc_mean_matrix = np.mean(hunt_acc_correlation_matrices,axis=0)
+
+plt.imshow(hunt_acc_mean_matrix,cmap='inferno')
+plt.title('Hunt ACC')
+plt.xlabel('lag (ms)')
+plt.ylabel('lag (ms)')
+plt.xticks(range(9),np.linspace(0,450,50))
 plt.show()
 
 #%% How many units show initial incresae vs decrease

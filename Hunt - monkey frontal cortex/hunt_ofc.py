@@ -30,6 +30,7 @@ hunt_ofc_no_spikes_in_a_bin = []
 hunt_ofc_low_fr = []
 
 hunt_ofc_avg_fr = []
+hunt_ofc_correlation_matrices = []
 
 binsize = 50
 
@@ -88,6 +89,8 @@ for unit in range(len(spikes)):
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,10))
+
+            hunt_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
@@ -256,4 +259,16 @@ plt.hist(hunt_ofc_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
 plt.title('%i monkey ofc units' %len(hunt_ofc_taus))
+plt.show()
+
+#%% Correlation matrix
+
+hunt_ofc_mean_matrix = np.mean(hunt_ofc_correlation_matrices,axis=0)
+
+plt.imshow(hunt_ofc_mean_matrix,cmap='inferno')
+plt.tight_layout()
+plt.title('Hunt OFC')
+plt.xlabel('lag (ms)')
+plt.ylabel('lag (ms)')
+plt.xticks(range(9),np.linspace(0,450,50))
 plt.show()

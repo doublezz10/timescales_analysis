@@ -31,6 +31,7 @@ meg_sc_no_spikes_in_a_bin = []
 meg_sc_low_fr = []
 
 meg_sc_avg_fr = []
+meg_sc_correlation_matrices = []
 
 for unit in range(len(spikes)):
 
@@ -88,6 +89,8 @@ for unit in range(len(spikes)):
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
+
+            meg_sc_correlation_matrices.apend(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human scdala unit %i' %unit)
@@ -251,4 +254,16 @@ plt.hist(meg_sc_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
 plt.title('%i monkey scACC units \n Meg' %len(meg_sc_taus))
+plt.show()
+
+#%% Correlation matrix
+
+meg_sc_mean_matrix = np.mean(meg_sc_correlation_matrices,axis=0)
+
+plt.imshow(meg_sc_mean_matrix,cmap='inferno')
+plt.tight_layout()
+plt.title('Meg scACC')
+plt.xlabel('lag (ms)')
+plt.ylabel('lag (ms)')
+plt.xticks(np.linspace(0,950,50))
 plt.show()

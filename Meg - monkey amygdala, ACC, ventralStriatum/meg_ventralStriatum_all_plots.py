@@ -31,6 +31,7 @@ meg_vs_no_spikes_in_a_bin = []
 meg_vs_low_fr = []
 
 meg_vs_avg_fr = []
+meg_vs_correlation_matrices = []
 
 for unit in range(len(spikes)):
 
@@ -88,6 +89,8 @@ for unit in range(len(spikes)):
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
+
+            meg_vs_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human vsdala unit %i' %unit)
@@ -251,4 +254,16 @@ plt.hist(meg_vs_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
 plt.title('%i monkey vStriatum units \n Meg' %len(meg_vs_taus))
+plt.show()
+
+#%% Correlation matrix
+
+meg_vs_mean_matrix = np.mean(meg_vs_correlation_matrices,axis=0)
+
+plt.imshow(meg_vs_mean_matrix,cmap='inferno')
+plt.tight_layout()
+plt.title('Meg VS')
+plt.xlabel('lag (ms)')
+plt.ylabel('lag (ms)')
+plt.xticks(np.linspace(0,950,50))
 plt.show()

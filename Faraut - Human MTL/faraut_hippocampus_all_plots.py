@@ -10,8 +10,6 @@ Created on Fri Nov 13 15:24:09 2020
 
 import numpy as np
 import scipy.io as spio
-import random
-import math
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
@@ -73,7 +71,7 @@ for unit in range(len(spikes)):
 
             faraut_hc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
-        elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))]:
+        elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))] == True:
 
             faraut_hc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
 
@@ -228,8 +226,8 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(faraut_hc_taus)
-plt.xlabel('tau')
+plt.hist(np.log(faraut_hc_taus))
+plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i human hippocampus units \n Faraut' %len(faraut_hc_taus))
 plt.show()

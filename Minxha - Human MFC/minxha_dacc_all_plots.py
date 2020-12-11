@@ -30,6 +30,7 @@ minxha_dacc_no_spikes_in_a_bin = []
 minxha_dacc_low_fr = []
 
 minxha_dacc_avg_fr = []
+minxha_dacc_correlation_matrices = []
 
 for unit in range(len(spikes)):
 
@@ -86,6 +87,8 @@ for unit in range(len(spikes)):
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
+
+            minxha_dacc_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
@@ -251,6 +254,18 @@ plt.hist(minxha_dacc_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
 plt.title('%i human dACC units' %len(minxha_dacc_taus))
+plt.show()
+
+#%% Correlation matrix
+
+minxha_dacc_mean_matrix = np.mean(minxha_dacc_correlation_matrices,axis=0)
+
+plt.imshow(minxha_dacc_mean_matrix,cmap='inferno')
+plt.tight_layout()
+plt.title('Minxha Amygdala')
+plt.xlabel('lag (ms)')
+plt.ylabel('lag (ms)')
+plt.xticks(np.linspace(0,950,50))
 plt.show()
 
 #%% How many units show initial incresae vs decrease

@@ -30,6 +30,7 @@ hunt_vmpfc_no_spikes_in_a_bin = []
 hunt_vmpfc_low_fr = []
 
 hunt_vmpfc_avg_fr = []
+hunt_vmpfc_correlation_matrices = []
 
 binsize = 50
 
@@ -88,6 +89,8 @@ for unit in range(len(spikes)):
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,10))
+
+            hunt_vmpfc_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
@@ -256,4 +259,16 @@ plt.hist(hunt_vmpfc_taus)
 plt.xlabel('tau')
 plt.ylabel('count')
 plt.title('%i monkey vmpfc units' %len(hunt_vmpfc_taus))
+plt.show()
+
+#%% Correlation matrix
+
+hunt_vmpfc_mean_matrix = np.mean(hunt_vmpfc_correlation_matrices,axis=0)
+
+plt.imshow(hunt_vmpfc_mean_matrix,cmap='inferno')
+plt.tight_layout()
+plt.title('Hunt vmPFC')
+plt.xlabel('lag (ms)')
+plt.ylabel('lag (ms)')
+plt.xticks(range(9),np.linspace(0,450,50))
 plt.show()

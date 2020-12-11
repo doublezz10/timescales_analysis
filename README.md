@@ -1,1 +1,1 @@
-# timescales_analysisThis repo contains python (and maybe some MATLAB) scripts for analyzing timescales data.
+# timescales_analysisThis repo contains python (and maybe some MATLAB) scripts for analyzing timescales data.Basic parameters: 50ms bins, filter for spike in every bin and firing rate > 1 Hz
