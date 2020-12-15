@@ -32,52 +32,52 @@ pre_brain_area_1 = []
 pre_brain_area_2 = []
 
 for unique_unit in range(len(froot_pre_units)):
-    
+
     one_unit = froot_pre.loc[froot_pre['unit_name'] == froot_pre_units[unique_unit]]
-    
+
     one_unit_spikes = one_unit[['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20']].to_numpy() / 20.41
-    
+
     this_brain_area = brain_areas.loc[brain_areas['unit_name'] == froot_pre_units[unique_unit]]
-    
+
     this_brain_area = this_brain_area.to_numpy()
-    
+
     this_brain_area = this_brain_area[0,2]
-    
+
     if this_brain_area == 1:
-        
+
         pre_brain_area_1.append(one_unit_spikes)
-        
+
     elif this_brain_area == 2:
-        
+
         pre_brain_area_2.append(one_unit_spikes)
-        
+
 # Post surgery
-        
+
 froot_post_units = froot_post.unit_name.unique()
 
 post_brain_area_1 = []
 post_brain_area_2 = []
 
 for unique_unit in range(len(froot_post_units)):
-    
+
     one_unit = froot_post.loc[froot_post['unit_name'] == froot_post_units[unique_unit]]
-    
+
     one_unit_spikes = one_unit[['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20']].to_numpy() / 20.41
-    
+
     this_brain_area = brain_areas.loc[brain_areas['unit_name'] == froot_post_units[unique_unit]]
-    
+
     this_brain_area = this_brain_area.to_numpy()
-    
+
     this_brain_area = this_brain_area[0,2]
-    
+
     if this_brain_area == 1:
-        
+
         post_brain_area_1.append(one_unit_spikes)
-        
+
     elif this_brain_area == 2:
-        
+
         post_brain_area_2.append(one_unit_spikes)
-        
+
 #%% Start computing autocorrelation
 
 # Pre Brain Area 1
@@ -94,9 +94,9 @@ pre_1_avg_fr = []
 pre_1_correlation_matrices = []
 
 for unit in range(len(pre_brain_area_1)):
-    
+
     binned_spikes = pre_brain_area_1[unit]
-    
+
     [trials,bins] = binned_spikes.shape
 
     summed_spikes_per_bin = np.sum(binned_spikes,axis=0)
@@ -133,7 +133,7 @@ for unit in range(len(pre_brain_area_1)):
         #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,20))
-        
+
         pre_1_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
@@ -227,12 +227,27 @@ for unit in range(len(pre_brain_area_1)):
         x_m = np.array(x_m)
         y_m = np.array(y_m)
 
+        # Only start fitting when slope is decreasing
+
+        diff = np.diff(x_m)
+
+        neg_diffs = []
+
+        for dif in range(len(diff)):
+
+            if diff[dif] >= 0:
+
+                neg_diffs.append(dif)
+
+        first_neg_diff = np.min(neg_diffs)
+
+        first_neg_diff = int(first_neg_diff)
+
         def func(x,a,tau,b):
             return a*((np.exp(-x/tau))+b)
 
-
         try:
-            pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+            pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
         except RuntimeError:
             print("Error - curve_fit failed; unit %i" %unit)
@@ -243,6 +258,7 @@ for unit in range(len(pre_brain_area_1)):
         pre_1_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro')
+        # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
         # plt.title('Froot 1 pre unit %i' %unit)
@@ -267,10 +283,22 @@ pre_1_se = pre_1_sd/np.sqrt(len(pre_1_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-pre_1_pars,cov = curve_fit(func,x_m,pre_1_mean,p0=[1,100,1],bounds=((0,np.inf)))
+mean_diff = np.diff(minxha_dacc_mean)
+
+neg_mean_diffs = []
+
+for diff in range(len(mean_diff)):
+
+    if mean_diff[diff] <= 0:
+
+        neg_mean_diffs.append(diff)
+
+first_neg_mean_diff = np.min(neg_mean_diffs)
+
+pre_1_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],pre_1_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
 plt.plot(x_m,pre_1_mean,label='original data')
-plt.plot(x_m,func(x_m,*pre_1_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*pre_1_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
@@ -302,9 +330,9 @@ pre_2_avg_fr = []
 pre_2_correlation_matrices = []
 
 for unit in range(len(pre_brain_area_2)):
-    
+
     binned_spikes = pre_brain_area_2[unit]
-    
+
     [trials,bins] = binned_spikes.shape
 
     summed_spikes_per_bin = np.sum(binned_spikes,axis=0)
@@ -341,7 +369,7 @@ for unit in range(len(pre_brain_area_2)):
         #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,20))
-        
+
         pre_2_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
@@ -435,12 +463,27 @@ for unit in range(len(pre_brain_area_2)):
         x_m = np.array(x_m)
         y_m = np.array(y_m)
 
+        # Only start fitting when slope is decreasing
+
+        diff = np.diff(x_m)
+
+        neg_diffs = []
+
+        for dif in range(len(diff)):
+
+            if diff[dif] >= 0:
+
+                neg_diffs.append(dif)
+
+        first_neg_diff = np.min(neg_diffs)
+
+        first_neg_diff = int(first_neg_diff)
+
         def func(x,a,tau,b):
             return a*((np.exp(-x/tau))+b)
 
-
         try:
-            pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+            pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
         except RuntimeError:
             print("Error - curve_fit failed; unit %i" %unit)
@@ -451,6 +494,7 @@ for unit in range(len(pre_brain_area_2)):
         pre_2_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro')
+        # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
         # plt.title('Froot 2 pre unit %i' %unit)
@@ -475,10 +519,22 @@ pre_2_se = pre_2_sd/np.sqrt(len(pre_2_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-pre_2_pars,cov = curve_fit(func,x_m,pre_2_mean,p0=[1,100,1],bounds=((0,np.inf)))
+mean_diff = np.diff(minxha_dacc_mean)
+
+neg_mean_diffs = []
+
+for diff in range(len(mean_diff)):
+
+    if mean_diff[diff] <= 0:
+
+        neg_mean_diffs.append(diff)
+
+first_neg_mean_diff = np.min(neg_mean_diffs)
+
+pre_2_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],pre_2_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
 plt.plot(x_m,pre_2_mean,label='original data')
-plt.plot(x_m,func(x_m,*pre_2_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*pre_2_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
@@ -510,9 +566,9 @@ post_1_avg_fr = []
 post_1_correlation_matrices = []
 
 for unit in range(len(post_brain_area_1)):
-    
+
     binned_spikes = post_brain_area_1[unit]
-    
+
     [trials,bins] = binned_spikes.shape
 
     summed_spikes_per_bin = np.sum(binned_spikes,axis=0)
@@ -549,7 +605,7 @@ for unit in range(len(post_brain_area_1)):
         #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,20))
-        
+
         post_1_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
@@ -643,12 +699,27 @@ for unit in range(len(post_brain_area_1)):
         x_m = np.array(x_m)
         y_m = np.array(y_m)
 
+        # Only start fitting when slope is decreasing
+
+        diff = np.diff(x_m)
+
+        neg_diffs = []
+
+        for dif in range(len(diff)):
+
+            if diff[dif] >= 0:
+
+                neg_diffs.append(dif)
+
+        first_neg_diff = np.min(neg_diffs)
+
+        first_neg_diff = int(first_neg_diff)
+
         def func(x,a,tau,b):
             return a*((np.exp(-x/tau))+b)
 
-
         try:
-            pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+            pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
         except RuntimeError:
             print("Error - curve_fit failed; unit %i" %unit)
@@ -659,6 +730,7 @@ for unit in range(len(post_brain_area_1)):
         post_1_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro')
+        # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
         # plt.title('Froot 1 post unit %i' %unit)
@@ -683,10 +755,22 @@ post_1_se = post_1_sd/np.sqrt(len(post_1_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-post_1_pars,cov = curve_fit(func,x_m,post_1_mean,p0=[1,100,1],bounds=((0,np.inf)))
+mean_diff = np.diff(minxha_dacc_mean)
+
+neg_mean_diffs = []
+
+for diff in range(len(mean_diff)):
+
+    if mean_diff[diff] <= 0:
+
+        neg_mean_diffs.append(diff)
+
+first_neg_mean_diff = np.min(neg_mean_diffs)
+
+post_1_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],post_1_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
 plt.plot(x_m,post_1_mean,label='original data')
-plt.plot(x_m,func(x_m,*post_1_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*post_1_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
@@ -704,7 +788,7 @@ plt.show()
 
 #%% Compute autocorrelation
 
-# post Brain Area 1
+# post Brain Area 2
 
 post_2_all_means = []
 post_2_taus = []
@@ -718,9 +802,9 @@ post_2_avg_fr = []
 post_2_correlation_matrices = []
 
 for unit in range(len(post_brain_area_2)):
-    
+
     binned_spikes = post_brain_area_2[unit]
-    
+
     [trials,bins] = binned_spikes.shape
 
     summed_spikes_per_bin = np.sum(binned_spikes,axis=0)
@@ -757,7 +841,7 @@ for unit in range(len(post_brain_area_2)):
         #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,20))
-        
+
         post_2_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
@@ -851,12 +935,27 @@ for unit in range(len(post_brain_area_2)):
         x_m = np.array(x_m)
         y_m = np.array(y_m)
 
+        # Only start fitting when slope is decreasing
+
+        diff = np.diff(x_m)
+
+        neg_diffs = []
+
+        for dif in range(len(diff)):
+
+            if diff[dif] >= 0:
+
+                neg_diffs.append(dif)
+
+        first_neg_diff = np.min(neg_diffs)
+
+        first_neg_diff = int(first_neg_diff)
+
         def func(x,a,tau,b):
             return a*((np.exp(-x/tau))+b)
 
-
         try:
-            pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+            pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
         except RuntimeError:
             print("Error - curve_fit failed; unit %i" %unit)
@@ -867,6 +966,7 @@ for unit in range(len(post_brain_area_2)):
         post_2_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro')
+        # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
         # plt.title('Froot 2 post unit %i' %unit)
@@ -891,10 +991,22 @@ post_2_se = post_2_sd/np.sqrt(len(post_2_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-post_2_pars,cov = curve_fit(func,x_m,post_2_mean,p0=[1,100,1],bounds=((0,np.inf)))
+mean_diff = np.diff(minxha_dacc_mean)
+
+neg_mean_diffs = []
+
+for diff in range(len(mean_diff)):
+
+    if mean_diff[diff] <= 0:
+
+        neg_mean_diffs.append(diff)
+
+first_neg_mean_diff = np.min(neg_mean_diffs)
+
+post_2_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],post_2_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
 plt.plot(x_m,post_2_mean,label='original data')
-plt.plot(x_m,func(x_m,*post_2_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*post_2_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')

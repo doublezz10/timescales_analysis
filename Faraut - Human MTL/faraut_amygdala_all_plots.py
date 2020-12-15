@@ -30,6 +30,7 @@ faraut_amyg_no_spikes_in_a_bin = []
 faraut_amyg_low_fr = []
 
 faraut_amyg_avg_fr = []
+faraut_amyg_correlation_matrices = []
 
 for unit in range(len(spikes)):
 
@@ -85,6 +86,8 @@ for unit in range(len(spikes)):
             #%% Reshape list of autocorrelations into 19x19 matrix, plot it
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
+
+            faraut_amyg_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
@@ -177,25 +180,42 @@ for unit in range(len(spikes)):
             x_m = np.array(x_m)
             y_m = np.array(y_m)
 
+            # Only start fitting when slope is decreasing
+
+            diff = np.diff(x_m)
+
+            neg_diffs = []
+
+            for dif in range(len(diff)):
+
+                if diff[dif] >= 0:
+
+                    neg_diffs.append(dif)
+
+            first_neg_diff = np.min(neg_diffs)
+
+            first_neg_diff = int(first_neg_diff)
+
             def func(x,a,tau,b):
                 return a*((np.exp(-x/tau))+b)
 
-
             try:
-                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
             except RuntimeError:
-                print("Error - curve_fit failed; unit %i" %unit)
+                print("Error - curve_fit failed")
                 faraut_amyg_failed_fits.append(unit)
 
             faraut_amyg_taus.append(pars[1])
 
             faraut_amyg_all_means.append(y_m)
 
-            # plt.plot(x_m,y_m,'ro')
+            # plt.plot(x_m,y_m,'ro',label='original data')
+            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
             # plt.xlabel('lag (ms)')
             # plt.ylabel('mean autocorrelation')
             # plt.title('Human amygdala %i' %unit)
+            # plt.legend()
             # plt.show()
 
 #%% How many units got filtered?
@@ -216,10 +236,20 @@ faraut_amyg_se = faraut_amyg_sd/np.sqrt(len(faraut_amyg_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-faraut_amyg_pars,cov = curve_fit(func,x_m,faraut_amyg_mean,p0=[1,100,1],bounds=((0,np.inf)))
+neg_mean_diffs = []
+
+for diff in range(len(mean_diff)):
+
+    if mean_diff[diff] <= 0:
+
+        neg_mean_diffs.append(diff)
+
+first_neg_mean_diff = np.min(neg_mean_diffs)
+
+faraut_amyg_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],faraut_amyg_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
 plt.plot(x_m,faraut_amyg_mean,label='original data')
-plt.plot(x_m,func(x_m,*faraut_amyg_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*faraut_amyg_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
@@ -233,4 +263,17 @@ plt.hist(np.log(faraut_amyg_taus))
 plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i human amygdala units \n Faraut' %len(faraut_amyg_taus))
+plt.show()
+
+#%% Correlation matrix
+
+faraut_amyg_mean_matrix = np.mean(faraut_amyg_correlation_matrices,axis=0)
+
+plt.imshow(faraut_amyg_mean_matrix)
+plt.tight_layout()
+plt.title('Faraut Amygdala')
+plt.xlabel('lag (ms)')
+plt.ylabel('lag (ms)')
+plt.xticks(range(0,18,2),range(0,900,100))
+plt.yticks(range(0,18,2),range(0,900,100))
 plt.show()

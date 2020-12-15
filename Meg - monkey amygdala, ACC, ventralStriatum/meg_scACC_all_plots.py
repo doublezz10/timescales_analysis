@@ -193,15 +193,17 @@ for unit in range(len(spikes)):
 
                 if diff[dif] >= 0:
 
-                    neg_diffs.append(diff[dif])
+                    neg_diffs.append(dif)
 
             first_neg_diff = np.min(neg_diffs)
+
+            first_neg_diff = int(first_neg_diff)
 
             def func(x,a,tau,b):
                 return a*((np.exp(-x/tau))+b)
 
             try:
-                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
             except RuntimeError:
                 print("Error - curve_fit failed")
@@ -212,7 +214,7 @@ for unit in range(len(spikes)):
             meg_sc_all_means.append(y_m)
 
             # plt.plot(x_m,y_m,'ro',label='original data')
-            # plt.plot(x_m,func(x_m,*pars),label='fit')
+            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
             # plt.xlabel('lag (ms)')
             # plt.ylabel('mean autocorrelation')
             # plt.title('Monkey scACC %i' %unit)
@@ -237,10 +239,22 @@ meg_sc_se = meg_sc_sd/np.sqrt(len(meg_sc_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-meg_sc_pars,cov = curve_fit(func,x_m,meg_sc_mean,p0=[1,100,1],bounds=((0,np.inf)))
+mean_diff = np.diff(minxha_dacc_mean)
+
+neg_mean_diffs = []
+
+for diff in range(len(mean_diff)):
+
+    if mean_diff[diff] <= 0:
+
+        neg_mean_diffs.append(diff)
+
+first_neg_mean_diff = np.min(neg_mean_diffs)
+
+meg_sc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],meg_sc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
 plt.plot(x_m,meg_sc_mean,label='original data')
-plt.plot(x_m,func(x_m,*meg_sc_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*meg_sc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')

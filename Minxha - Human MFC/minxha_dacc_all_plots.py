@@ -191,7 +191,7 @@ for unit in range(len(spikes)):
 
                 if diff[dif] >= 0:
 
-                    neg_diffs.append(diff[dif])
+                    neg_diffs.append(dif)
 
             first_neg_diff = np.min(neg_diffs)
 
@@ -201,7 +201,7 @@ for unit in range(len(spikes)):
                 return a*((np.exp(-x/tau))+b)
 
             try:
-                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
             except RuntimeError:
                 print("Error - curve_fit failed")
@@ -237,10 +237,22 @@ minxha_dacc_se = minxha_dacc_sd/np.sqrt(len(minxha_dacc_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-minxha_dacc_pars,cov = curve_fit(func,x_m,minxha_dacc_mean,p0=[1,100,1],bounds=((0,np.inf)))
+mean_diff = np.diff(minxha_dacc_mean)
+
+neg_mean_diffs = []
+
+for diff in range(len(mean_diff)):
+
+    if mean_diff[diff] <= 0:
+
+        neg_mean_diffs.append(diff)
+
+first_neg_mean_diff = np.min(neg_mean_diffs)
+
+minxha_dacc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],minxha_dacc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
 plt.plot(x_m,minxha_dacc_mean,label='original data')
-plt.plot(x_m,func(x_m,*minxha_dacc_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*minxha_dacc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
@@ -260,12 +272,13 @@ plt.show()
 
 minxha_dacc_mean_matrix = np.mean(minxha_dacc_correlation_matrices,axis=0)
 
-plt.imshow(minxha_dacc_mean_matrix,cmap='inferno')
+plt.imshow(minxha_dacc_mean_matrix)
 plt.tight_layout()
 plt.title('Minxha Amygdala')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(np.linspace(0,950,50))
+plt.xticks(range(0,18,2),range(0,900,100))
+plt.yticks(range(0,18,2),range(0,900,100))
 plt.show()
 
 #%% How many units show initial incresae vs decrease

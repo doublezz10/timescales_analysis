@@ -179,23 +179,42 @@ for unit in range(len(spikes)):
             x_m = np.array(x_m)
             y_m = np.array(y_m)
 
+            # Only start fitting when slope is decreasing
+
+            diff = np.diff(x_m)
+
+            neg_diffs = []
+
+            for dif in range(len(diff)):
+
+                if diff[dif] >= 0:
+
+                    neg_diffs.append(dif)
+
+            first_neg_diff = np.min(neg_diffs)
+
+            first_neg_diff = int(first_neg_diff)
+
             def func(x,a,tau,b):
                 return a*((np.exp(-x/tau))+b)
 
             try:
-                pars,cov = curve_fit(func,x_m,y_m,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
             except RuntimeError:
                 print("Error - curve_fit failed")
+                minxha_presma_failed_fits.append(unit)
 
             minxha_presma_taus.append(pars[1])
 
             minxha_presma_all_means.append(y_m)
 
-            # plt.plot(x_m,y_m,'ro')
+            # plt.plot(x_m,y_m,'ro',label='original data')
+            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
             # plt.xlabel('lag (ms)')
             # plt.ylabel('mean autocorrelation')
             # plt.title('Human preSMA %i' %unit)
+            # plt.legend()
             # plt.show()
 
 #%% How many units got filtered?
@@ -216,10 +235,20 @@ minxha_presma_se = minxha_presma_sd/np.sqrt(len(minxha_presma_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-minxha_presma_pars,cov = curve_fit(func,x_m,minxha_presma_mean,p0=[1,100,1],bounds=((0,np.inf)))
+neg_mean_diffs = []
+
+for diff in range(len(mean_diff)):
+
+    if mean_diff[diff] <= 0:
+
+        neg_mean_diffs.append(diff)
+
+first_neg_mean_diff = np.min(neg_mean_diffs)
+
+minxha_presma_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],minxha_presma_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
 plt.plot(x_m,minxha_presma_mean,label='original data')
-plt.plot(x_m,func(x_m,*minxha_presma_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*minxha_presma_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
