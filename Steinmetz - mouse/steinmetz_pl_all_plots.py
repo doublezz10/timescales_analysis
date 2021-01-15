@@ -15,11 +15,11 @@ from scipy.optimize import curve_fit
 
 #%% Load in data
 
-pl = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Steinmetz - mouse/pl_iti_trial.mat',simplify_cells=True)
+pl = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Steinmetz - mouse/pl_task_trial.mat',simplify_cells=True)
 
 #%% Extract spiking data from one brain area
 
-spikes = pl['pl_iti_by_trial']
+spikes = pl['pl_task_by_trial']
 
 steinmetz_pl_all_means = []
 steinmetz_pl_taus = []
@@ -262,7 +262,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all mouse pl units \n Steinmetz')
-plt.text(710,0.053,'tau = %i' %steinmetz_pl_pars[1])
+plt.text(710,0.11,'tau = %i' %steinmetz_pl_pars[1])
 plt.show()
 
 #%% Histogram of taus

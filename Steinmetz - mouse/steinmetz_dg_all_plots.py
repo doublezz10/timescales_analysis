@@ -15,11 +15,11 @@ from scipy.optimize import curve_fit
 
 #%% Load in data
 
-dg = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Steinmetz - mouse/dg_iti_trial.mat',simplify_cells=True)
+dg = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Steinmetz - mouse/dg_task_trial.mat',simplify_cells=True)
 
 #%% Extract spiking data from one brain area
 
-spikes = dg['dg_iti_by_trial']
+spikes = dg['dg_task_by_trial']
 
 steinmetz_dg_all_means = []
 steinmetz_dg_taus = []
