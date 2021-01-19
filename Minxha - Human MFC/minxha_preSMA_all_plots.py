@@ -13,6 +13,7 @@ import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
+
 #%% Load in data
 
 presma = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minxha - Human MFC/preSMA.mat',simplify_cells=True)
@@ -237,6 +238,8 @@ def func(x,a,tau,b):
 
 neg_mean_diffs = []
 
+mean_diff = np.diff(minxha_presma_mean)
+
 for diff in range(len(mean_diff)):
 
     if mean_diff[diff] <= 0:
@@ -258,8 +261,8 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(minxha_presma_taus)
-plt.xlabel('tau')
+plt.hist(np.log(minxha_presma_taus))
+plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i human preSMA units' %len(minxha_presma_taus))
 plt.show()
@@ -268,10 +271,12 @@ plt.show()
 
 minxha_presma_mean_matrix = np.mean(minxha_presma_correlation_matrices,axis=0)
 
-plt.imshow(minxha_presma_mean_matrix,cmap='inferno')
+plt.imshow(minxha_presma_mean_matrix)
 plt.tight_layout()
-plt.title('Minxha Amygdala')
+plt.title('Minxha preSMA')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(np.linspace(0,950,50))
+plt.xticks(range(0,20,2),range(0,1000,100))
+plt.yticks(range(0,20,2),range(0,1000,100))
+plt.colorbar()
 plt.show()

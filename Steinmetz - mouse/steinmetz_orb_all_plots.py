@@ -223,7 +223,7 @@ for unit in range(len(spikes)):
         except ValueError:
 
             pass
-            
+
 #%% How many units got filtered?
 
 steinmetz_orb_bad_units = len(steinmetz_orb_failed_autocorr) + len(steinmetz_orb_no_spikes_in_a_bin) + len(steinmetz_orb_low_fr)
@@ -261,7 +261,7 @@ plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*steinmetz_orb
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Mean of all mouse orb units \n Steinmetz')
+plt.title('Mean of all mouse ORB units \n Steinmetz')
 plt.text(710,0.08,'tau = %i' %steinmetz_orb_pars[1])
 plt.show()
 
@@ -270,7 +270,7 @@ plt.show()
 plt.hist(np.log(steinmetz_orb_taus))
 plt.xlabel('log(tau)')
 plt.ylabel('count')
-plt.title('%i mouse orb units \n Steinmetz' %len(steinmetz_orb_taus))
+plt.title('%i mouse ORB units \n Steinmetz' %len(steinmetz_orb_taus))
 plt.show()
 
 #%% Correlation matrix
@@ -279,9 +279,10 @@ steinmetz_orb_mean_matrix = np.mean(steinmetz_orb_correlation_matrices,axis=0)
 
 plt.imshow(steinmetz_orb_mean_matrix)
 plt.tight_layout()
-plt.title('Steinmetz orb')
+plt.title('Steinmetz ORB')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(range(0,18,2),range(0,900,100))
-plt.yticks(range(0,18,2),range(0,900,100))
+plt.xticks(range(0,20,2),range(0,1000,100))
+plt.yticks(range(0,20,2),range(0,1000,100))
+plt.colorbar()
 plt.show()

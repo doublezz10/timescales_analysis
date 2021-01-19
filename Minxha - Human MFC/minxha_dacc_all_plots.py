@@ -262,8 +262,8 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(minxha_dacc_taus)
-plt.xlabel('tau')
+plt.hist(np.log(minxha_dacc_taus))
+plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i human dACC units' %len(minxha_dacc_taus))
 plt.show()
@@ -274,11 +274,12 @@ minxha_dacc_mean_matrix = np.mean(minxha_dacc_correlation_matrices,axis=0)
 
 plt.imshow(minxha_dacc_mean_matrix)
 plt.tight_layout()
-plt.title('Minxha Amygdala')
+plt.title('Minxha dACC')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(range(0,18,2),range(0,900,100))
-plt.yticks(range(0,18,2),range(0,900,100))
+plt.xticks(range(0,20,2),range(0,1000,100))
+plt.yticks(range(0,20,2),range(0,1000,100))
+plt.colorbar()
 plt.show()
 
 #%% How many units show initial incresae vs decrease

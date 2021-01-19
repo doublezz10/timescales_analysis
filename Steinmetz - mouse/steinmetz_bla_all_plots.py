@@ -219,7 +219,7 @@ for unit in range(len(spikes)):
                 # plt.title('Mouse BLA %i' %unit)
                 # plt.legend()
                 # plt.show()
-                
+
         except ValueError:
 
             pass
@@ -282,6 +282,7 @@ plt.tight_layout()
 plt.title('Steinmetz BLA')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(range(0,18,2),range(0,900,100))
-plt.yticks(range(0,18,2),range(0,900,100))
+plt.xticks(range(0,20,2),range(0,1000,100))
+plt.yticks(range(0,20,2),range(0,1000,100))
+plt.colorbar()
 plt.show()

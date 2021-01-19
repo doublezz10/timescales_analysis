@@ -239,7 +239,7 @@ meg_amyg_se = meg_amyg_sd/np.sqrt(len(meg_amyg_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(minxha_dacc_mean)
+mean_diff = np.diff(meg_amyg_mean)
 
 neg_mean_diffs = []
 
@@ -264,8 +264,8 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(meg_amyg_taus)
-plt.xlabel('tau')
+plt.hist(np.log(meg_amyg_taus))
+plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i monkey amygdala units \n Meg' %len(meg_amyg_taus))
 plt.show()
@@ -274,11 +274,12 @@ plt.show()
 
 meg_amyg_mean_matrix = np.mean(meg_amyg_correlation_matrices,axis=0)
 
-plt.imshow(meg_amyg_mean_matrix,cmap='inferno')
+plt.imshow(meg_amyg_mean_matrix)
 plt.tight_layout()
 plt.title('Meg amygdala')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(np.linspace(0,18,2),np.linspace(0,950,50))
-plt.yticks(np.linspace(0,18,2),np.linspace(0,950,50))
+plt.xticks(range(0,20,2),range(0,1000,100))
+plt.yticks(range(0,20,2),range(0,1000,100))
+plt.colorbar()
 plt.show()

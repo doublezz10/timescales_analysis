@@ -31,6 +31,8 @@ minxha_hc_low_fr = []
 minxha_hc_avg_fr = []
 minxha_hc_correlation_matrices = []
 
+minxha_hc_failed_fits = []
+
 for unit in range(len(spikes)):
 
         this_unit = spikes[unit]
@@ -86,7 +88,7 @@ for unit in range(len(spikes)):
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
 
-            minxha_correlation_matrices.append(correlation_matrix)
+            minxha_hc_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
@@ -235,7 +237,7 @@ minxha_hc_se = minxha_hc_sd/np.sqrt(len(minxha_hc_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(minxha_dacc_mean)
+mean_diff = np.diff(minxha_hc_mean)
 
 neg_mean_diffs = []
 
@@ -260,8 +262,8 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(minxha_hc_taus)
-plt.xlabel('tau')
+plt.hist(np.log(minxha_hc_taus))
+plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i human hippocampus units \n Minxha' %len(minxha_hc_taus))
 plt.show()
@@ -270,10 +272,12 @@ plt.show()
 
 minxha_hc_mean_matrix = np.mean(minxha_hc_correlation_matrices,axis=0)
 
-plt.imshow(minxha_hc_mean_matrix,cmap='inferno')
+plt.imshow(minxha_hc_mean_matrix)
 plt.tight_layout()
-plt.title('Minxha Amygdala')
+plt.title('Minxha Hippocampus')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(np.linspace(0,950,50))
+plt.xticks(range(0,20,2),range(0,1000,100))
+plt.yticks(range(0,20,2),range(0,1000,100))
+plt.colorbar()
 plt.show()

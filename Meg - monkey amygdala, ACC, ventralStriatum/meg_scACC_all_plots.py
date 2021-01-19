@@ -90,7 +90,7 @@ for unit in range(len(spikes)):
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
 
-            meg_sc_correlation_matrices.apend(correlation_matrix)
+            meg_sc_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human scdala unit %i' %unit)
@@ -239,7 +239,7 @@ meg_sc_se = meg_sc_sd/np.sqrt(len(meg_sc_mean))
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(minxha_dacc_mean)
+mean_diff = np.diff(meg_sc_mean)
 
 neg_mean_diffs = []
 
@@ -264,8 +264,8 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(meg_sc_taus)
-plt.xlabel('tau')
+plt.hist(np.log(meg_sc_taus))
+plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i monkey scACC units \n Meg' %len(meg_sc_taus))
 plt.show()
@@ -274,10 +274,12 @@ plt.show()
 
 meg_sc_mean_matrix = np.mean(meg_sc_correlation_matrices,axis=0)
 
-plt.imshow(meg_sc_mean_matrix,cmap='inferno')
+plt.imshow(meg_sc_mean_matrix)
 plt.tight_layout()
 plt.title('Meg scACC')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(np.linspace(0,950,50))
+plt.xticks(range(0,20,2),range(0,1000,100))
+plt.yticks(range(0,20,2),range(0,1000,100))
+plt.colorbar()
 plt.show()

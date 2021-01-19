@@ -236,6 +236,8 @@ def func(x,a,tau,b):
 
 neg_mean_diffs = []
 
+mean_diff = np.diff(faraut_hc_mean)
+
 for diff in range(len(mean_diff)):
 
     if mean_diff[diff] <= 0:
@@ -267,11 +269,12 @@ plt.show()
 
 faraut_hc_mean_matrix = np.mean(faraut_hc_correlation_matrices,axis=0)
 
-plt.imshow(faraut_amyg_mean_matrix)
+plt.imshow(faraut_hc_mean_matrix)
 plt.tight_layout()
-plt.title('Faraut Amygdala')
+plt.title('Faraut Hippocampus')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(range(0,18,2),range(0,900,100))
-plt.yticks(range(0,18,2),range(0,900,100))
+plt.xticks(range(0,20,2),range(0,1000,100))
+plt.yticks(range(0,20,2),range(0,1000,100))
+plt.colorbar()
 plt.show()
