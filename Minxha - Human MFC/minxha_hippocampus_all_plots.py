@@ -257,7 +257,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all human hippocampus units \n Minxha')
-plt.text(710,0.03,'tau = %i' %minxha_hc_pars[1])
+plt.text(710,0.03,'tau = %i ms \n fr = %.2f hz \n n = %i' % (minxha_hc_pars[1],minxha_hc_mean_fr,len(minxha_hc_taus)))
 plt.show()
 
 #%% Histogram of taus

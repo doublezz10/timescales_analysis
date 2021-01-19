@@ -233,6 +233,8 @@ faraut_amyg_mean = np.mean(faraut_amyg_all_means,axis=0)
 faraut_amyg_sd = np.std(faraut_amyg_all_means,axis=0)
 faraut_amyg_se = faraut_amyg_sd/np.sqrt(len(faraut_amyg_mean))
 
+faraut_amyg_mean_fr = np.mean(faraut_amyg_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
@@ -254,9 +256,9 @@ plt.plot(x_m,faraut_amyg_mean,label='original data')
 plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*faraut_amyg_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
-plt.ylabel('mean autocorrelation')
+plt.ylabel('autocorrelation')
 plt.title('Mean of all human amygdala units \n Faraut')
-plt.text(710,0.053,'tau = %i' %faraut_amyg_pars[1])
+plt.text(710,0.053,'tau = %i ms \n fr = %.2f hz \n n = %i' % (faraut_amyg_pars[1],faraut_amyg_mean_fr,len(faraut_amyg_taus)))
 plt.show()
 
 #%% Histogram of taus

@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 plt.style.use('seaborn')
-plt.rc('axes', titlesize=12)
 
 #%% Load in data
 
@@ -261,7 +260,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Faraut human amygdala units \n Minxha')
-plt.text(710,0.04,'tau = %i' %minxha_amyg_pars[1])
+plt.text(710,0.04,'tau = %i ms \n fr = %.2f hz \n n = %i' % (minxha_amyg_pars[1],minxha_amyg_mean_fr,len(minxha_amyg_taus)))
 plt.ylim((0,0.07))
 plt.show()
 

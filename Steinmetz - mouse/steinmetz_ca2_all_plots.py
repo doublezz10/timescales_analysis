@@ -262,7 +262,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all mouse CA2 units \n Steinmetz')
-plt.text(710,0.02,'tau = %i' %steinmetz_ca2_pars[1])
+plt.text(710,0.02,'tau = %i ms \n fr = %.2f hz \n n = %i' % (steinmetz_ca2_pars[1],steinmetz_ca2_mean_fr,len(steinmetz_ca2_taus)))
 plt.show()
 
 #%% Histogram of taus

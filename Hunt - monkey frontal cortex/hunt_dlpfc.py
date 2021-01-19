@@ -219,15 +219,22 @@ for unit in range(len(spikes)):
             # plt.legend()
             # plt.show()
 
+#%% How many units got filtered?
+
+bad_units = len(hunt_dlpfc_no_autocorr) + len(hunt_dlpfc_no_spikes_in_a_bin) + len(hunt_dlpfc_low_fr)
+
+print('%i units were filtered out' %bad_units)
+print('out of %i total units' %len(spikes))
+
 #%% Take mean of all units
 
 hunt_dlpfc_all_means = np.vstack(hunt_dlpfc_all_means)
 
-mean_dlpfc = np.mean(hunt_dlpfc_all_means,axis=0)
-sd_dlpfc = np.std(hunt_dlpfc_all_means,axis=0)
-se_dlpfc = sd_dlpfc/np.sqrt(len(mean_dlpfc))
+hunt_dlpfc_mean = np.mean(hunt_dlpfc_all_means,axis=0)
+hunt_dlpfc_sd = np.std(hunt_dlpfc_all_means,axis=0)
+hunt_dlpfc_se = hunt_dlpfc_sd/np.sqrt(len(hunt_dlpfc_mean))
 
-mean_diff = np.diff(mean_dlpfc)
+mean_diff = np.diff(hunt_dlpfc_mean)
 
 neg_mean_diffs = []
 
@@ -242,21 +249,21 @@ first_neg_mean_diff = np.min(neg_mean_diffs)
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-hunt_dlpfc_pars,cov = curve_fit(func,x_m,mean_dlpfc)
+hunt_dlpfc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],hunt_dlpfc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,mean_dlpfc,label='original data')
-plt.plot(x_m,func(x_m,*hunt_dlpfc_pars),label='fit curve')
+plt.plot(x_m,hunt_dlpfc_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*hunt_dlpfc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all monkey dlpfc units \n Hunt')
-plt.text(100,0.060,'tau = %i' %hunt_dlpfc_pars[1])
+plt.text(100,0.060,'tau = %i ms \n fr = %.2f hz \n n = %i' % (hunt_dlpfc_pars[1],hunt_dlpfc_mean_fr,len(hunt_dlpfc_taus)))
 plt.show()
 
 #%% Histogram of taus
 
-plt.hist(hunt_dlpfc_taus)
-plt.xlabel('tau')
+plt.hist(np.log(hunt_dlpfc_taus))
+plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i monkey dlpfc units \n Hunt' %len(hunt_dlpfc_taus))
 plt.show()
@@ -269,5 +276,7 @@ plt.imshow(hunt_dlpfc_mean_matrix,cmap='inferno')
 plt.title('Hunt dlPFC')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(range(9),np.linspace(0,450,50))
+plt.xticks(range(10),range(0,500,50))
+plt.yticks(range(10),range(0,500,50))
+plt.colorbar()
 plt.show()

@@ -254,7 +254,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all human hippocampus units \n Faraut')
-plt.text(710,0.075,'tau = %i' %faraut_hc_pars[1])
+plt.text(710,0.075,'tau = %i ms \n fr = %.2f hz \n n = %i' % (faraut_hc_pars[1],faraut_hc_mean_fr,len(faraut_hc_taus)))
 plt.show()
 
 #%% Histogram of taus

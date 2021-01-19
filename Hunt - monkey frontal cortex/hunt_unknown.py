@@ -218,6 +218,13 @@ for unit in range(len(spikes)):
             # plt.legend()
             # plt.show()
 
+#%% How many units got filtered?
+
+bad_units = len(hunt_unknown_no_autocorr) + len(hunt_unknown_no_spikes_in_a_bin) + len(hunt_unknown_low_fr)
+
+print('%i units were filtered out' %bad_units)
+print('out of %i total units' %len(spikes))
+
 #%% Take mean of all units
 
 hunt_unknown_all_means = np.vstack(hunt_unknown_all_means)
@@ -241,21 +248,21 @@ first_neg_mean_diff = np.min(neg_mean_diffs)
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-hunt_unknown_pars,cov = curve_fit(func,x_m,mean_unknown,p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
+hunt_unknown_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],mean_unknown[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
 plt.plot(x_m,mean_unknown,label='original data')
-plt.plot(x_m,func(x_m,*hunt_unknown_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*hunt_unknown_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all monkey unknown units')
-plt.text(100,0.0475,'tau = %i' %hunt_unknown_pars[1])
+plt.text(100,0.0475,'tau = %i ms \n fr = %.2f hz \n n = %i' % (hunt_unknown_pars[1],hunt_unknown_mean_fr,len(hunt_unknown_taus)))
 plt.show()
 
 #%% Histogram of taus
 
-plt.hist(hunt_unknown_taus)
-plt.xlabel('tau')
+plt.hist(np.log(hunt_unknown_taus))
+plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i monkey unknown units' %len(hunt_unknown_taus))
 plt.show()
@@ -269,5 +276,7 @@ plt.tight_layout()
 plt.title('Hunt unknown')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(range(9),np.linspace(0,450,50))
+plt.xticks(range(10),range(0,500,50))
+plt.yticks(range(10),range(0,500,50))
+plt.colorbar()
 plt.show()

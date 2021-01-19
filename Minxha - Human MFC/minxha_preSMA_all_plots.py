@@ -256,7 +256,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all human preSMA units')
-plt.text(710,0.05,'tau = %i' %minxha_presma_pars[1])
+plt.text(710,0.05,'tau = %i ms \n fr = %.2f hz \n n = %i' % (minxha_presma_pars[1],minxha_presma_mean_fr,len(minxha_presma_taus)))
 plt.show()
 
 #%% Histogram of taus

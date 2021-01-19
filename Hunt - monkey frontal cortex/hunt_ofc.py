@@ -90,7 +90,7 @@ for unit in range(len(spikes)):
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,10))
 
-            hunt_correlation_matrices.append(correlation_matrix)
+            hunt_ofc_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
@@ -219,15 +219,22 @@ for unit in range(len(spikes)):
             # plt.legend()
             # plt.show()
 
+#%% How many units got filtered?
+
+bad_units = len(hunt_ofc_no_autocorr) + len(hunt_ofc_no_spikes_in_a_bin) + len(hunt_ofc_low_fr)
+
+print('%i units were filtered out' %bad_units)
+print('out of %i total units' %len(spikes))
+
 #%% Take mean of all units
 
 hunt_ofc_all_means = np.vstack(hunt_ofc_all_means)
 
-mean_ofc = np.mean(hunt_ofc_all_means,axis=0)
-sd_ofc = np.std(hunt_ofc_all_means,axis=0)
-se_ofc = sd_ofc/np.sqrt(len(mean_ofc))
+hunt_ofc_mean = np.mean(hunt_ofc_all_means,axis=0)
+hunt_ofc_sd = np.std(hunt_ofc_all_means,axis=0)
+hunt_ofc_se = hunt_ofc_sd/np.sqrt(len(hunt_ofc_mean))
 
-mean_diff = np.diff(mean_ofc)
+mean_diff = np.diff(hunt_ofc_mean)
 
 neg_mean_diffs = []
 
@@ -242,21 +249,21 @@ first_neg_mean_diff = np.min(neg_mean_diffs)
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-hunt_ofc_pars,cov = curve_fit(func,x_m,mean_ofc,bounds=((0,np.inf)),maxfev=5000)
+hunt_ofc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],hunt_ofc_mean[first_neg_mean_diff:],bounds=((0,np.inf)),maxfev=5000)
 
-plt.plot(x_m,mean_ofc,label='original data')
-plt.plot(x_m,func(x_m,*hunt_ofc_pars),label='fit curve')
+plt.plot(x_m,hunt_ofc_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*hunt_ofc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all monkey ofc units')
-plt.text(100,0.06,'tau = %i' %hunt_ofc_pars[1])
+plt.text(100,0.06,'tau = %i ms \n fr = %.2f hz \n n = %i' % (hunt_ofc_pars[1],hunt_ofc_mean_fr,len(hunt_ofc_taus)))
 plt.show()
 
 #%% Histogram of taus
 
-plt.hist(hunt_ofc_taus)
-plt.xlabel('tau')
+plt.hist(np.log(hunt_ofc_taus))
+plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i monkey ofc units' %len(hunt_ofc_taus))
 plt.show()
@@ -270,5 +277,7 @@ plt.tight_layout()
 plt.title('Hunt OFC')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(range(9),np.linspace(0,450,50))
+plt.xticks(range(10),range(0,500,50))
+plt.yticks(range(10),range(0,500,50))
+plt.colorbar()
 plt.show()

@@ -262,7 +262,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all mouse BLA units \n Steinmetz')
-plt.text(710,0.12,'tau = %i' %steinmetz_bla_pars[1])
+plt.text(710,0.12,'tau = %i ms \n fr = %.2f hz \n n = %i' % (steinmetz_bla_pars[1],steinmetz_bla_mean_fr,len(steinmetz_bla_taus)))
 plt.show()
 
 #%% Histogram of taus

@@ -257,7 +257,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all human dACC units')
-plt.text(710,0.055,'tau = %i' %minxha_dacc_pars[1])
+plt.text(710,0.055,'tau = %i ms \n fr = %.2f hz \n n = %i' % (minxha_dacc_pars[1],minxha_dacc_mean_fr,len(minxha_dacc_taus)))
 plt.show()
 
 #%% Histogram of taus

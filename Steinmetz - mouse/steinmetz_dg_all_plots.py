@@ -256,7 +256,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all mouse DG units \n Steinmetz')
-plt.text(710,0.053,'tau = %i' %steinmetz_dg_pars[1])
+plt.text(710,0.053,'tau = %i ms \n fr = %.2f hz \n n = %i' % (steinmetz_dg_pars[1],steinmetz_dg_mean_fr,len(steinmetz_dg_taus)))
 plt.show()
 
 #%% Histogram of taus

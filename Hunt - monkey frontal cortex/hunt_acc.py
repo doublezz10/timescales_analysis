@@ -90,7 +90,7 @@ for unit in range(len(spikes)):
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,10))
 
-            hunt_acc_correlation_matrices.append(correlation_matrices)
+            hunt_acc_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
             # plt.title('Human amygdala unit %i' %unit)
@@ -197,11 +197,13 @@ for unit in range(len(spikes)):
 
             first_neg_diff = np.min(neg_diffs)
 
+            first_neg_diff = int(first_neg_diff)
+
             def func(x,a,tau,b):
                 return a*((np.exp(-x/tau))+b)
 
             try:
-                pars,cov = curve_fit(func,x_m,y_m,p0=[0,100,0],bounds=(0,[1,1000,1]),maxfev=5000)
+                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
 
             except RuntimeError:
                 print("Error - curve_fit failed")
@@ -219,15 +221,22 @@ for unit in range(len(spikes)):
             # plt.legend()
             # plt.show()
 
+#%% How many units got filtered?
+
+bad_units = len(hunt_acc_no_autocorr) + len(hunt_acc_no_spikes_in_a_bin) + len(hunt_acc_low_fr)
+
+print('%i units were filtered out' %bad_units)
+print('out of %i total units' %len(spikes))
+
 #%% Take mean of all units
 
 hunt_acc_all_means = np.vstack(hunt_acc_all_means)
 
-mean_acc = np.mean(hunt_acc_all_means,axis=0)
-sd_acc = np.std(hunt_acc_all_means,axis=0)
-se_acc = sd_acc/np.sqrt(len(mean_acc))
+hunt_acc_mean = np.mean(hunt_acc_all_means,axis=0)
+hunt_acc_sd = np.std(hunt_acc_all_means,axis=0)
+hunt_acc_se = hunt_acc_sd/np.sqrt(len(hunt_acc_mean))
 
-mean_diff = np.diff(mean_acc)
+mean_diff = np.diff(hunt_acc_mean)
 
 neg_mean_diffs = []
 
@@ -239,7 +248,7 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-sorted_pairs = sorted((i,j) for i,j in zip(x_m,mean_acc))
+sorted_pairs = sorted((i,j) for i,j in zip(x_m,hunt_acc_mean))
 
 x_s = []
 y_s = []
@@ -258,21 +267,21 @@ y_s = np.array(y_s)
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-hunt_acc_pars,cov = curve_fit(func,x_s,y_s,p0=[0,100,0],bounds=(0,[1,1000,1]),maxfev=5000)
+hunt_acc_pars,cov = curve_fit(func,x_s[first_neg_mean_diff:],y_s[first_neg_mean_diff:],p0=[0,100,0],bounds=(0,[1,1000,1]),maxfev=5000)
 
 plt.plot(x_s,y_s,label='original data')
-plt.plot(x_s,func(x_s,*hunt_acc_pars),label='fit curve')
+plt.plot(x_s[first_neg_mean_diff:],func(x_s[first_neg_mean_diff:],*hunt_acc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all monkey acc units \n Hunt')
-plt.text(100,0.095,'tau = %i' %hunt_acc_pars[1])
+plt.text(100,0.095,'tau = %i ms \n fr = %.2f hz \n n = %i' % (hunt_acc_pars[1],hunt_acc_mean_fr,len(hunt_acc_taus)))
 plt.show()
 
 #%% Histogram of taus
 
-plt.hist(hunt_acc_taus)
-plt.xlabel('tau')
+plt.hist(np.log(hunt_acc_taus))
+plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i monkey acc units \n Hunt' %len(hunt_acc_taus))
 plt.show()
@@ -281,11 +290,13 @@ plt.show()
 
 hunt_acc_mean_matrix = np.mean(hunt_acc_correlation_matrices,axis=0)
 
-plt.imshow(hunt_acc_mean_matrix,cmap='inferno')
+plt.imshow(hunt_acc_mean_matrix)
 plt.title('Hunt ACC')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
-plt.xticks(range(9),np.linspace(0,450,50))
+plt.xticks(range(10),range(0,500,50))
+plt.yticks(range(10),range(0,500,50))
+plt.colorbar()
 plt.show()
 
 #%% How many units show initial incresae vs decrease
