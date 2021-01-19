@@ -13,10 +13,6 @@ import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-import seaborn as sns
-
-sns.set()
-
 #%% Load in data
 
 aca = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Steinmetz - mouse/aca_task_trial.mat',simplify_cells=True)
@@ -243,6 +239,8 @@ steinmetz_aca_mean = np.mean(steinmetz_aca_all_means,axis=0)
 steinmetz_aca_sd = np.std(steinmetz_aca_all_means,axis=0)
 steinmetz_aca_se = steinmetz_aca_sd/np.sqrt(len(steinmetz_aca_mean))
 
+steinmetz_aca_mean_fr = np.mean( steinmetz_aca_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
@@ -266,7 +264,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all mouse ACA units \n Steinmetz')
-plt.text(710,0.1,'tau = %i ms \n fr = %.2f hz \n n = %i' % (steinmetz_aca_pars[1],steinmetz_aca_mean_fr,len(steinmetz_aca_taus))))
+plt.text(710,0.1,'tau = %i ms \n fr = %.2f hz \n n = %i' % (steinmetz_aca_pars[1],steinmetz_aca_mean_fr,len(steinmetz_aca_taus)))
 plt.show()
 
 #%% Histogram of taus

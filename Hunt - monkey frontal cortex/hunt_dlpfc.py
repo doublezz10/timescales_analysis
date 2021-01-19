@@ -234,6 +234,8 @@ hunt_dlpfc_mean = np.mean(hunt_dlpfc_all_means,axis=0)
 hunt_dlpfc_sd = np.std(hunt_dlpfc_all_means,axis=0)
 hunt_dlpfc_se = hunt_dlpfc_sd/np.sqrt(len(hunt_dlpfc_mean))
 
+hunt_dlpfc_mean_fr = np.mean(hunt_dlpfc_avg_fr)
+
 mean_diff = np.diff(hunt_dlpfc_mean)
 
 neg_mean_diffs = []

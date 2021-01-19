@@ -236,6 +236,8 @@ meg_amyg_mean = np.mean(meg_amyg_all_means,axis=0)
 meg_amyg_sd = np.std(meg_amyg_all_means,axis=0)
 meg_amyg_se = meg_amyg_sd/np.sqrt(len(meg_amyg_mean))
 
+meg_amyg_mean_fr = np.mean(meg_amyg_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
@@ -259,7 +261,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all monkey amygdala units \n Meg')
-plt.text(710,0.053,'tau = %i' %meg_amyg_pars[1])
+plt.text(710,0.053,'tau = %i ms \n fr = %.2f hz \n n = %i' % (meg_amyg_pars[1],meg_amyg_mean_fr,len(meg_amyg_taus)))
 plt.show()
 
 #%% Histogram of taus

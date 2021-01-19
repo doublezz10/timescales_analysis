@@ -233,6 +233,8 @@ mean_unknown = np.mean(hunt_unknown_all_means,axis=0)
 sd_unknown = np.std(hunt_unknown_all_means,axis=0)
 se_unknown = sd_unknown/np.sqrt(len(mean_unknown))
 
+hunt_unknown_mean_fr = np.mean(hunt_unknown_avg_fr)
+
 mean_diff = np.diff(mean_unknown)
 
 neg_mean_diffs = []

@@ -233,6 +233,8 @@ minxha_presma_mean = np.mean(minxha_presma_all_means,axis=0)
 minxha_presma_sd = np.std(minxha_presma_all_means,axis=0)
 minxha_presma_se = minxha_presma_sd/np.sqrt(len(minxha_presma_mean))
 
+minxha_presma_mean_fr = np.mean(minxha_presma_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 

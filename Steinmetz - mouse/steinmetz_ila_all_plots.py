@@ -238,6 +238,8 @@ steinmetz_ila_mean = np.mean(steinmetz_ila_all_means,axis=0)
 steinmetz_ila_sd = np.std(steinmetz_ila_all_means,axis=0)
 steinmetz_ila_se = steinmetz_ila_sd/np.sqrt(len(steinmetz_ila_mean))
 
+steinmetz_ila_mean_fr = np.mean(steinmetz_ila_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 

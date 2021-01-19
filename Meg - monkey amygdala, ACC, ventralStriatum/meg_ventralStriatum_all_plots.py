@@ -236,10 +236,12 @@ meg_vs_mean = np.mean(meg_vs_all_means,axis=0)
 meg_vs_sd = np.std(meg_vs_all_means,axis=0)
 meg_vs_se = meg_vs_sd/np.sqrt(len(meg_vs_mean))
 
+meg_vs_mean_fr = np.mean(meg_vs_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(minxha_dacc_mean)
+mean_diff = np.diff(meg_vs_mean)
 
 neg_mean_diffs = []
 
@@ -259,7 +261,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all monkey vStriatum units \n Meg')
-plt.text(710,0.053,'tau = %i' %meg_vs_pars[1])
+plt.text(710,0.053,'tau = %i ms \n fr = %.2f hz \n n = %i' % (meg_vs_pars[1],meg_vs_mean_fr,len(meg_vs_taus)))
 plt.show()
 
 #%% Histogram of taus

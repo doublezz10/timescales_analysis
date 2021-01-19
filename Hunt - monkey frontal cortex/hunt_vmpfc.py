@@ -234,6 +234,8 @@ mean_vmpfc = np.mean(hunt_vmpfc_all_means,axis=0)
 sd_vmpfc = np.std(hunt_vmpfc_all_means,axis=0)
 se_vmpfc = sd_vmpfc/np.sqrt(len(mean_vmpfc))
 
+hunt_vmpfc_mean_fr = np.mean(hunt_vmpfc_avg_fr)
+
 mean_diff = np.diff(mean_vmpfc)
 
 neg_mean_diffs = []

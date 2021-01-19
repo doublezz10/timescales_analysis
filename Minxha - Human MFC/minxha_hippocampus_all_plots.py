@@ -234,6 +234,8 @@ minxha_hc_mean = np.mean(minxha_hc_all_means,axis=0)
 minxha_hc_sd = np.std(minxha_hc_all_means,axis=0)
 minxha_hc_se = minxha_hc_sd/np.sqrt(len(minxha_hc_mean))
 
+minxha_hc_mean_fr = np.mean(minxha_hc_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 

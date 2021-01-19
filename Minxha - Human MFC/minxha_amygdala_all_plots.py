@@ -13,8 +13,6 @@ import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-plt.style.use('seaborn')
-
 #%% Load in data
 
 amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minxha - Human MFC/amygdala.mat',simplify_cells=True)
@@ -236,6 +234,8 @@ minxha_amyg_all_means = np.vstack(minxha_amyg_all_means)
 minxha_amyg_mean = np.mean(minxha_amyg_all_means,axis=0)
 minxha_amyg_sd = np.std(minxha_amyg_all_means,axis=0)
 minxha_amyg_se = minxha_amyg_sd/np.sqrt(len(minxha_amyg_mean))
+
+minxha_amyg_mean_fr = np.mean(minxha_amyg_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)

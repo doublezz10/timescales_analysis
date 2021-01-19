@@ -234,6 +234,8 @@ minxha_dacc_mean = np.mean(minxha_dacc_all_means,axis=0)
 minxha_dacc_sd = np.std(minxha_dacc_all_means,axis=0)
 minxha_dacc_se = minxha_dacc_sd/np.sqrt(len(minxha_dacc_mean))
 
+minxha_dacc_mean_fr = np.mean(minxha_dacc_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 

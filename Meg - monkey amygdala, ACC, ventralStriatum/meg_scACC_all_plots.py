@@ -236,6 +236,8 @@ meg_sc_mean = np.mean(meg_sc_all_means,axis=0)
 meg_sc_sd = np.std(meg_sc_all_means,axis=0)
 meg_sc_se = meg_sc_sd/np.sqrt(len(meg_sc_mean))
 
+meg_sc_mean_fr = np.mean(meg_sc_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
@@ -259,7 +261,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all monkey scACC units \n Meg')
-plt.text(710,0.053,'tau = %i' %meg_sc_pars[1])
+plt.text(710,0.053,'tau = %i ms \n fr = %.2f hz \n n = %i' % (meg_sc_pars[1],meg_sc_mean_fr,len(meg_sc_taus)))
 plt.show()
 
 #%% Histogram of taus

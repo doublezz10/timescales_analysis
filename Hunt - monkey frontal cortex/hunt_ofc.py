@@ -234,6 +234,8 @@ hunt_ofc_mean = np.mean(hunt_ofc_all_means,axis=0)
 hunt_ofc_sd = np.std(hunt_ofc_all_means,axis=0)
 hunt_ofc_se = hunt_ofc_sd/np.sqrt(len(hunt_ofc_mean))
 
+hunt_ofc_mean_fr = np.mean(hunt_ofc_avg_fr)
+
 mean_diff = np.diff(hunt_ofc_mean)
 
 neg_mean_diffs = []

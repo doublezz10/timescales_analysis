@@ -236,6 +236,8 @@ hunt_acc_mean = np.mean(hunt_acc_all_means,axis=0)
 hunt_acc_sd = np.std(hunt_acc_all_means,axis=0)
 hunt_acc_se = hunt_acc_sd/np.sqrt(len(hunt_acc_mean))
 
+hunt_acc_mean_fr = np.mean(hunt_acc_avg_fr)
+
 mean_diff = np.diff(hunt_acc_mean)
 
 neg_mean_diffs = []

@@ -239,6 +239,8 @@ steinmetz_pl_mean = np.mean(steinmetz_pl_all_means,axis=0)
 steinmetz_pl_sd = np.std(steinmetz_pl_all_means,axis=0)
 steinmetz_pl_se = steinmetz_pl_sd/np.sqrt(len(steinmetz_pl_mean))
 
+steinmetz_pl_mean_fr = np.mean(steinmetz_pl_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 

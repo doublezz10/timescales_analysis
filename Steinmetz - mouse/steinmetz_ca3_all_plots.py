@@ -239,6 +239,8 @@ steinmetz_ca3_mean = np.mean(steinmetz_ca3_all_means,axis=0)
 steinmetz_ca3_sd = np.std(steinmetz_ca3_all_means,axis=0)
 steinmetz_ca3_se = steinmetz_ca3_sd/np.sqrt(len(steinmetz_ca3_mean))
 
+steinmetz_ca3_mean_fr = np.mean(steinmetz_ca3_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 

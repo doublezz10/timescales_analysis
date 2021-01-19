@@ -239,6 +239,8 @@ steinmetz_orb_mean = np.mean(steinmetz_orb_all_means,axis=0)
 steinmetz_orb_sd = np.std(steinmetz_orb_all_means,axis=0)
 steinmetz_orb_se = steinmetz_orb_sd/np.sqrt(len(steinmetz_orb_mean))
 
+steinmetz_orb_mean_fr = np.mean(steinmetz_orb_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 

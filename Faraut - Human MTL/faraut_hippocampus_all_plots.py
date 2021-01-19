@@ -231,6 +231,8 @@ faraut_hc_mean = np.mean(faraut_hc_all_means,axis=0)
 faraut_hc_sd = np.std(faraut_hc_all_means,axis=0)
 faraut_hc_se = faraut_hc_sd/np.sqrt(len(faraut_hc_mean))
 
+faraut_hc_mean_fr = np.mean(faraut_hc_avg_fr)
+
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
