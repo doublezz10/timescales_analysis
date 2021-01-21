@@ -278,7 +278,7 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(np.log(minxha_amyg_taus))
+plt.hist(np.log10(minxha_amyg_taus))
 plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i human amygdala units \n Minxha' %len(minxha_amyg_taus))
