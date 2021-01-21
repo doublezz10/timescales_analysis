@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov 13 14:52:55 2020
+Created on Thu Jan 21 13:20:40 2021
 
 @author: zachz
 """
+
+# Data comes in in seconds already!
 
 #%% Imports
 
@@ -13,48 +15,59 @@ import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-#%% Load in data
+#%% Load data
 
-amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Faraut - Human MTL/faraut_amygdala.mat',simplify_cells=True)
+ofc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Buzsaki Rat/buzsaki_ofc.mat',simplify_cells=True)
 
-#%% Extract spiking data from one brain area
+spikes = ofc['all_spikes'][0,:]
+animals = ofc['all_spikes'][1,:]
 
-spikes = amy['spikes']
+#%% Begin working!
 
-faraut_amyg_all_means = []
-faraut_amyg_taus = []
-faraut_amyg_failed_fits = []
+buzsaki_ofc_all_means = []
+buzsaki_ofc_taus = []
+buzsaki_ofc_failed_fits = []
 
-faraut_amyg_failed_autocorr = []
-faraut_amyg_no_spikes_in_a_bin = []
-faraut_amyg_low_fr = []
+buzsaki_ofc_failed_autocorr = []
+buzsaki_ofc_no_spikes_in_a_bin = []
+buzsaki_ofc_low_fr = []
 
-faraut_amyg_avg_fr = []
-faraut_amyg_correlation_matrices = []
+buzsaki_ofc_avg_fr = []
+buzsaki_ofc_correlation_matrices = []
 
-for unit in range(len(spikes)):
-
-        this_unit = spikes[unit]
-
-        # Bin spikes from first second in 50 ms bins
-
-        bins = np.arange(0,1,step=0.05)
-
+for animal in range(len(spikes)):
+    
+    for unit in range(len(spikes[animal])):
+        
+        unit_spikes = spikes[animal][unit]
+        
+        # 0 align first spike to make binning easier, bin @ 50ms
+        
+        unit_spikes = unit_spikes - np.min(unit_spikes)
+        
+        bins = np.arange(0,np.max(unit_spikes),step=0.05)
+        
+        binned_spikes, edges = np.histogram(unit_spikes,bins=bins)
+        
+        # Every 5 seconds is a new "trial"
+        
         binned_unit_spikes = []
-
-        for trial in range(len(this_unit)):
-
-            binned, bin_edges = np.histogram(this_unit[trial],bins=bins)
-
-            binned_unit_spikes.append(binned)
-
+        
+        for start_t in range(0,len(binned_spikes),20*3):
+            
+            trial_spikes = binned_spikes[start_t:start_t+19]
+            
+            binned_unit_spikes.append(trial_spikes)
+            
+        binned_unit_spikes = binned_unit_spikes[:-1]
+            
         binned_unit_spikes = np.vstack(binned_unit_spikes)
 
         [trials,bins] = binned_unit_spikes.shape
 
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
 
-        faraut_amyg_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+        buzsaki_ofc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
         #%% Do autocorrelation
 
@@ -71,15 +84,15 @@ for unit in range(len(spikes)):
 
         if np.isnan(one_autocorrelation).any() == True:
 
-            faraut_amyg_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+            buzsaki_ofc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
         elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))] == True:
 
-            faraut_amyg_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+            buzsaki_ofc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
 
         elif np.sum(summed_spikes_per_bin) < 1:
 
-            faraut_amyg_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+            buzsaki_ofc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
         else:
 
@@ -87,10 +100,10 @@ for unit in range(len(spikes)):
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
 
-            faraut_amyg_correlation_matrices.append(correlation_matrix)
+            buzsaki_ofc_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
-            # plt.title('Human amygdala unit %i' %unit)
+            # plt.title('Rat OFC unit %i' %unit)
             # plt.xlabel('lag')
             # plt.ylabel('lag')
             # plt.xticks(range(0,19))
@@ -152,7 +165,7 @@ for unit in range(len(spikes)):
             y_s = np.array(y_s)
 
             # plt.plot(x_s,y_s,'ro')
-            # plt.title('Human amygdala unit %i' %unit)
+            # plt.title('Rat OFC unit %i' %unit)
             # plt.xlabel('lag (ms)')
             # plt.ylabel('autocorrelation')
             # plt.show()
@@ -204,41 +217,41 @@ for unit in range(len(spikes)):
 
             except RuntimeError:
                 print("Error - curve_fit failed")
-                faraut_amyg_failed_fits.append(unit)
+                buzsaki_ofc_failed_fits.append(unit)
 
-            faraut_amyg_taus.append(pars[1])
+            buzsaki_ofc_taus.append(pars[1])
 
-            faraut_amyg_all_means.append(y_m)
+            buzsaki_ofc_all_means.append(y_m)
 
             # plt.plot(x_m,y_m,'ro',label='original data')
             # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
             # plt.xlabel('lag (ms)')
             # plt.ylabel('mean autocorrelation')
-            # plt.title('Human amygdala %i' %unit)
+            # plt.title('Rat OFC %i' %unit)
             # plt.legend()
             # plt.show()
 
 #%% How many units got filtered?
 
-faraut_amyg_bad_units = len(faraut_amyg_failed_autocorr) + len(faraut_amyg_no_spikes_in_a_bin) + len(faraut_amyg_low_fr)
+buzsaki_ofc_bad_units = len(buzsaki_ofc_failed_autocorr) + len(buzsaki_ofc_no_spikes_in_a_bin) + len(buzsaki_ofc_low_fr)
 
-print('%i units were filtered out' %faraut_amyg_bad_units)
-print('out of %i total units' %len(spikes))
+print('%i units were filtered out' %buzsaki_ofc_bad_units)
+print('out of %i total units' %np.sum([np.sum(len(spikes[rat])) for rat in range(len(spikes))]))
 
 #%% Take mean of all units
 
-faraut_amyg_all_means = np.vstack(faraut_amyg_all_means)
+buzsaki_ofc_all_means = np.vstack(buzsaki_ofc_all_means)
 
-faraut_amyg_mean = np.mean(faraut_amyg_all_means,axis=0)
-faraut_amyg_sd = np.std(faraut_amyg_all_means,axis=0)
-faraut_amyg_se = faraut_amyg_sd/np.sqrt(len(faraut_amyg_mean))
+buzsaki_ofc_mean = np.mean(buzsaki_ofc_all_means,axis=0)
+buzsaki_ofc_sd = np.std(buzsaki_ofc_all_means,axis=0)
+buzsaki_ofc_se = buzsaki_ofc_sd/np.sqrt(len(buzsaki_ofc_mean))
 
-faraut_amyg_mean_fr = np.mean(faraut_amyg_avg_fr)
+buzsaki_ofc_mean_fr = np.mean(buzsaki_ofc_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(faraut_amyg_mean)
+mean_diff = np.diff(buzsaki_ofc_mean)
 
 neg_mean_diffs = []
 
@@ -250,45 +263,45 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-faraut_amyg_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],faraut_amyg_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+buzsaki_ofc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],buzsaki_ofc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,faraut_amyg_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*faraut_amyg_pars),label='fit curve')
+plt.plot(x_m,buzsaki_ofc_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*buzsaki_ofc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all human amygdala units \n Faraut')
-plt.text(710,0.053,'tau = %i ms \n fr = %.2f hz \n n = %i' % (faraut_amyg_pars[1],faraut_amyg_mean_fr,len(faraut_amyg_taus)))
+plt.title('Mean of all Rat OFC units \n Buzsaki')
+plt.text(710,0.053,'tau = %i ms \n fr = %.2f hz \n n = %i' % (buzsaki_ofc_pars[1],buzsaki_ofc_mean_fr,len(buzsaki_ofc_taus)))
 plt.show()
 
 
 #%% Add error bars
 
-plt.errorbar(x_m, faraut_amyg_mean, yerr=faraut_amyg_se, label='data +/- se')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*faraut_amyg_pars),label='fit curve')
+plt.errorbar(x_m, buzsaki_ofc_mean, yerr=buzsaki_ofc_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*buzsaki_ofc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all human amygdala units \n Faraut')
-plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (faraut_amyg_pars[1],faraut_amyg_mean_fr,len(faraut_amyg_taus)))
+plt.title('Mean of all Rat OFC units \n Buzsaki')
+plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (buzsaki_ofc_pars[1],buzsaki_ofc_mean_fr,len(buzsaki_ofc_taus)))
 plt.ylim((0,0.16))
 plt.show()
 
 #%% Histogram of taus
 
-plt.hist(np.log(faraut_amyg_taus))
+plt.hist(np.log(buzsaki_ofc_taus))
 plt.xlabel('log(tau)')
 plt.ylabel('count')
-plt.title('%i human amygdala units \n Faraut' %len(faraut_amyg_taus))
+plt.title('%i Rat OFC units \n Buzsaki' %len(buzsaki_ofc_taus))
 plt.show()
 
 #%% Correlation matrix
 
-faraut_amyg_mean_matrix = np.mean(faraut_amyg_correlation_matrices,axis=0)
+buzsaki_ofc_mean_matrix = np.mean(buzsaki_ofc_correlation_matrices,axis=0)
 
-plt.imshow(faraut_amyg_mean_matrix)
+plt.imshow(buzsaki_ofc_mean_matrix)
 plt.tight_layout()
-plt.title('Faraut Amygdala')
+plt.title('Buzsaki Rat OFC')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
 plt.xticks(range(0,20,2),range(0,1000,100))

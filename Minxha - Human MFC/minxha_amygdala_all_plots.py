@@ -259,9 +259,21 @@ plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*minxha_amyg_p
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Faraut human amygdala units \n Minxha')
+plt.title('Mean of all human amygdala units \n Minxha')
 plt.text(710,0.04,'tau = %i ms \n fr = %.2f hz \n n = %i' % (minxha_amyg_pars[1],minxha_amyg_mean_fr,len(minxha_amyg_taus)))
 plt.ylim((0,0.07))
+plt.show()
+
+#%% Add error bars
+
+plt.errorbar(x_m, minxha_amyg_mean, yerr=minxha_amyg_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*minxha_amyg_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all human amygdala units \n Minxha')
+plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (minxha_amyg_pars[1],minxha_amyg_mean_fr,len(minxha_amyg_taus)))
+plt.ylim((0,0.16))
 plt.show()
 
 #%% Histogram of taus

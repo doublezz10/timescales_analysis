@@ -264,6 +264,18 @@ plt.title('Mean of all monkey amygdala units \n Meg')
 plt.text(710,0.053,'tau = %i ms \n fr = %.2f hz \n n = %i' % (meg_amyg_pars[1],meg_amyg_mean_fr,len(meg_amyg_taus)))
 plt.show()
 
+#%% Add error bars
+
+plt.errorbar(x_m, meg_amyg_mean, yerr=meg_amyg_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*meg_amyg_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all monkey amygdala units \n Meg')
+plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (meg_amyg_pars[1],meg_amyg_mean_fr,len(meg_amyg_taus)))
+plt.ylim((0,0.16))
+plt.show()
+
 #%% Histogram of taus
 
 plt.hist(np.log(meg_amyg_taus))

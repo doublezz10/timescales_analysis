@@ -267,6 +267,18 @@ plt.title('Mean of all mouse BLA units \n Steinmetz')
 plt.text(710,0.12,'tau = %i ms \n fr = %.2f hz \n n = %i' % (steinmetz_bla_pars[1],steinmetz_bla_mean_fr,len(steinmetz_bla_taus)))
 plt.show()
 
+#%% Add error bars
+
+plt.errorbar(x_m, steinmetz_bla_mean, yerr=steinmetz_bla_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*steinmetz_bla_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all mouse BLA units \n Steinmetz')
+plt.text(710,0.03,'tau = %i ms \n fr = %.2f hz \n n = %i' % (steinmetz_bla_pars[1],steinmetz_bla_mean_fr,len(steinmetz_bla_taus)))
+plt.ylim((0,0.16))
+plt.show()
+
 #%% Histogram of taus
 
 plt.hist(np.log(steinmetz_bla_taus))
