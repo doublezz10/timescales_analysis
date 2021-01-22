@@ -35,29 +35,29 @@ buzsaki_ofc_avg_fr = []
 buzsaki_ofc_correlation_matrices = []
 
 for unit in range(len(spikes)):
-        
+
     unit_spikes = spikes[unit]
-    
+
     # 0 align first spike to make binning easier, bin @ 50ms
-    
+
     unit_spikes = unit_spikes - np.min(unit_spikes)
-    
+
     bins = np.arange(0,np.max(unit_spikes),step=0.05)
-    
+
     binned_spikes, edges = np.histogram(unit_spikes,bins=bins)
-    
+
     # Every 5 seconds is a new "trial"
-    
+
     binned_unit_spikes = []
-    
+
     for start_t in range(0,len(binned_spikes),20*3):
-        
+
         trial_spikes = binned_spikes[start_t:start_t+19]
-        
+
         binned_unit_spikes.append(trial_spikes)
-        
+
     binned_unit_spikes = binned_unit_spikes[:-1]
-        
+
     binned_unit_spikes = np.vstack(binned_unit_spikes)
 
     [trials,bins] = binned_unit_spikes.shape
@@ -286,9 +286,12 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(np.log(buzsaki_ofc_taus))
-plt.xlabel('log(tau)')
-plt.ylabel('count')
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(buzsaki_ofc_taus,bins=bins, weights=np.zeros_like(buzsaki_ofc_taus) + 1. / len(buzsaki_ofc_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
 plt.title('%i Rat OFC units \n Buzsaki' %len(buzsaki_ofc_taus))
 plt.show()
 

@@ -33,29 +33,29 @@ buzsaki_mpfc_avg_fr = []
 buzsaki_mpfc_correlation_matrices = []
 
 for unit in range(len(spikes)):
-        
+
     unit_spikes = spikes[unit]
-    
+
     # 0 align first spike to make binning easier, bin @ 50ms
-    
+
     unit_spikes = unit_spikes - np.min(unit_spikes)
-    
+
     bins = np.arange(0,np.max(unit_spikes),step=0.05)
-    
+
     binned_spikes, edges = np.histogram(unit_spikes,bins=bins)
-    
+
     # Every 5 seconds is a new "trial"
-    
+
     binned_unit_spikes = []
-    
+
     for start_t in range(0,len(binned_spikes),20*3):
-        
+
         trial_spikes = binned_spikes[start_t:start_t+19]
-        
+
         binned_unit_spikes.append(trial_spikes)
-        
+
     binned_unit_spikes = binned_unit_spikes[:-1]
-        
+
     binned_unit_spikes = np.vstack(binned_unit_spikes)
 
     [trials,bins] = binned_unit_spikes.shape
@@ -218,13 +218,13 @@ for unit in range(len(spikes)):
 
         buzsaki_mpfc_all_means.append(y_m)
 
-        # plt.plot(x_m,y_m,'ro',label='original data')
-        # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
-        # plt.xlabel('lag (ms)')
-        # plt.ylabel('mean autocorrelation')
-        # plt.title('Rat mpfc %i' %unit)
-        # plt.legend()
-        # plt.show()
+        plt.plot(x_m,y_m,'ro',label='original data')
+        plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+        plt.xlabel('lag (ms)')
+        plt.ylabel('mean autocorrelation')
+        plt.title('Rat mpfc %i' %unit)
+        plt.legend()
+        plt.show()
 
 #%% How many units got filtered?
 
@@ -284,10 +284,13 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(np.log(buzsaki_mpfc_taus))
-plt.xlabel('log(tau)')
-plt.ylabel('count')
-plt.title('%i Rat mpfc units \n Buzsaki' %len(buzsaki_mpfc_taus))
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(buzsaki_mpfc_taus,bins=bins, weights=np.zeros_like(buzsaki_mpfc_taus) + 1. / len(buzsaki_mpfc_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
+plt.title('%i Rat mPFC units \n Buzsaki' %len(buzsaki_mpfc_taus))
 plt.show()
 
 #%% Correlation matrix
@@ -303,4 +306,3 @@ plt.xticks(range(0,20,2),range(0,1000,100))
 plt.yticks(range(0,20,2),range(0,1000,100))
 plt.colorbar()
 plt.show()
-

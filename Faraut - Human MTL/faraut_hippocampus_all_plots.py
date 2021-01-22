@@ -261,10 +261,13 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(np.log(faraut_hc_taus))
-plt.xlabel('log(tau)')
-plt.ylabel('count')
-plt.title('%i human hippocampus units \n Faraut' %len(faraut_hc_taus))
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(faraut_hc_taus,bins=bins, weights=np.zeros_like(faraut_hc_taus) + 1. / len(faraut_hc_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
+plt.title('%i Human hippocampus units \n Faraut' %len(faraut_hc_taus))
 plt.show()
 
 #%% Correlation matrix

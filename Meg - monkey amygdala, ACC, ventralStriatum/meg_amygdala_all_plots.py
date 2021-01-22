@@ -278,10 +278,13 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(np.log(meg_amyg_taus))
-plt.xlabel('log(tau)')
-plt.ylabel('count')
-plt.title('%i monkey amygdala units \n Meg' %len(meg_amyg_taus))
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(meg_amyg_taus,bins=bins, weights=np.zeros_like(meg_amyg_taus) + 1. / len(meg_amyg_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
+plt.title('%i Monkey amygdala units \n Meg' %len(meg_amyg_taus))
 plt.show()
 
 #%% Correlation matrix

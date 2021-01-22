@@ -264,10 +264,13 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(np.log(minxha_dacc_taus))
-plt.xlabel('log(tau)')
-plt.ylabel('count')
-plt.title('%i human dACC units' %len(minxha_dacc_taus))
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(minxha_dacc_taus,bins=bins, weights=np.zeros_like(minxha_dacc_taus) + 1. / len(minxha_dacc_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
+plt.title('%i Human dACC units \n Minxha' %len(minxha_dacc_taus))
 plt.show()
 
 #%% Correlation matrix

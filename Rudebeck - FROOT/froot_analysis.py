@@ -308,10 +308,13 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(pre_1_taus)
-plt.xlabel('tau')
-plt.ylabel('count')
-plt.title('%i pre 1 Froot units' %len(pre_1_taus))
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(pre_1_taus,bins=bins, weights=np.zeros_like(pre_1_taus) + 1. / len(pre_1_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
+plt.title('%i Froot 1 pre units' %len(pre_1_taus))
 plt.show()
 
 #%% Compute autocorrelation
@@ -544,10 +547,13 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(pre_2_taus)
-plt.xlabel('tau')
-plt.ylabel('count')
-plt.title('%i pre 2 Froot units' %len(pre_2_taus))
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(pre_2_taus,bins=bins, weights=np.zeros_like(pre_2_taus) + 1. / len(pre_2_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
+plt.title('%i Froot pre 2' %len(pre_2_taus))
 plt.show()
 
 #%% Start computing autocorrelation
@@ -780,10 +786,13 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(post_1_taus)
-plt.xlabel('tau')
-plt.ylabel('count')
-plt.title('%i post 1 Froot units' %len(post_1_taus))
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(post_1_taus,bins=bins, weights=np.zeros_like(post_1_taus) + 1. / len(post_1_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
+plt.title('%i Froot post 1 units' %len(post_1_taus))
 plt.show()
 
 #%% Compute autocorrelation
@@ -1016,10 +1025,13 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(post_2_taus)
-plt.xlabel('tau')
-plt.ylabel('count')
-plt.title('%i post 2 Froot units' %len(post_2_taus))
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(post_2_taus,bins=bins, weights=np.zeros_like(post_2_taus) + 1. / len(post_2_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
+plt.title('%i Froot post 2 units' %len(post_2_taus))
 plt.show()
 
 #%% Correlation matrices

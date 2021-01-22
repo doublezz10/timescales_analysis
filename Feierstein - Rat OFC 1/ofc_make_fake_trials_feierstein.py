@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 21 16:59:19 2021
+Created on Fri Jan 22 11:55:16 2021
 
 @author: zachz
 """
@@ -15,22 +15,22 @@ from scipy.optimize import curve_fit
 
 #%% Load data
 
-acc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Buzsaki Rat/buzsaki_acc.mat',simplify_cells=True)
+ofc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Feierstein - rat OFC 1/feierstein_ofc.mat',simplify_cells=True)
 
-spikes = acc['spikes']
+spikes = ofc['spikes']
 
 #%% Begin working!
 
-buzsaki_acc_all_means = []
-buzsaki_acc_taus = []
-buzsaki_acc_failed_fits = []
+feierstein_ofc_all_means = []
+feierstein_ofc_taus = []
+feierstein_ofc_failed_fits = []
 
-buzsaki_acc_failed_autocorr = []
-buzsaki_acc_no_spikes_in_a_bin = []
-buzsaki_acc_low_fr = []
+feierstein_ofc_failed_autocorr = []
+feierstein_ofc_no_spikes_in_a_bin = []
+feierstein_ofc_low_fr = []
 
-buzsaki_acc_avg_fr = []
-buzsaki_acc_correlation_matrices = []
+feierstein_ofc_avg_fr = []
+feierstein_ofc_correlation_matrices = []
 
 for unit in range(len(spikes)):
 
@@ -62,7 +62,7 @@ for unit in range(len(spikes)):
 
     summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
 
-    buzsaki_acc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+    feierstein_ofc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
     #%% Do autocorrelation
 
@@ -79,15 +79,15 @@ for unit in range(len(spikes)):
 
     if np.isnan(one_autocorrelation).any() == True:
 
-        buzsaki_acc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+        feierstein_ofc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
     elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))] == True:
 
-        buzsaki_acc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+        feierstein_ofc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
 
-    elif np.sum(summed_spikes_per_bin) < 1:
+    elif np.sum(feierstein_ofc_avg_fr) < 1:
 
-        buzsaki_acc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+        feierstein_ofc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
     else:
 
@@ -95,10 +95,10 @@ for unit in range(len(spikes)):
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
 
-        buzsaki_acc_correlation_matrices.append(correlation_matrix)
+        feierstein_ofc_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
-        # plt.title('Rat acc unit %i' %unit)
+        # plt.title('Rat OFC unit %i' %unit)
         # plt.xlabel('lag')
         # plt.ylabel('lag')
         # plt.xticks(range(0,19))
@@ -160,7 +160,7 @@ for unit in range(len(spikes)):
         y_s = np.array(y_s)
 
         # plt.plot(x_s,y_s,'ro')
-        # plt.title('Rat acc unit %i' %unit)
+        # plt.title('Rat OFC unit %i' %unit)
         # plt.xlabel('lag (ms)')
         # plt.ylabel('autocorrelation')
         # plt.show()
@@ -212,41 +212,41 @@ for unit in range(len(spikes)):
 
         except RuntimeError:
             print("Error - curve_fit failed")
-            buzsaki_acc_failed_fits.append(unit)
+            feierstein_ofc_failed_fits.append(unit)
 
-        buzsaki_acc_taus.append(pars[1])
+        feierstein_ofc_taus.append(pars[1])
 
-        buzsaki_acc_all_means.append(y_m)
+        feierstein_ofc_all_means.append(y_m)
 
-        plt.plot(x_m,y_m,'ro',label='original data')
-        plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
-        plt.xlabel('lag (ms)')
-        plt.ylabel('mean autocorrelation')
-        plt.title('Rat acc %i' %unit)
-        plt.legend()
-        plt.show()
+        # plt.plot(x_m,y_m,'ro',label='original data')
+        # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+        # plt.xlabel('lag (ms)')
+        # plt.ylabel('mean autocorrelation')
+        # plt.title('Rat OFC %i' %unit)
+        # plt.legend()
+        # plt.show()
 
 #%% How many units got filtered?
 
-buzsaki_acc_bad_units = len(buzsaki_acc_failed_autocorr) + len(buzsaki_acc_no_spikes_in_a_bin) + len(buzsaki_acc_low_fr)
+feierstein_ofc_bad_units = len(feierstein_ofc_failed_autocorr) + len(feierstein_ofc_no_spikes_in_a_bin) + len(feierstein_ofc_low_fr)
 
-print('%i units were filtered out' %buzsaki_acc_bad_units)
+print('%i units were filtered out' %feierstein_ofc_bad_units)
 print('out of %i total units' %len(spikes))
 
 #%% Take mean of all units
 
-buzsaki_acc_all_means = np.vstack(buzsaki_acc_all_means)
+feierstein_ofc_all_means = np.vstack(feierstein_ofc_all_means)
 
-buzsaki_acc_mean = np.mean(buzsaki_acc_all_means,axis=0)
-buzsaki_acc_sd = np.std(buzsaki_acc_all_means,axis=0)
-buzsaki_acc_se = buzsaki_acc_sd/np.sqrt(len(buzsaki_acc_mean))
+feierstein_ofc_mean = np.mean(feierstein_ofc_all_means,axis=0)
+feierstein_ofc_sd = np.std(feierstein_ofc_all_means,axis=0)
+feierstein_ofc_se = feierstein_ofc_sd/np.sqrt(len(feierstein_ofc_mean))
 
-buzsaki_acc_mean_fr = np.mean(buzsaki_acc_avg_fr)
+feierstein_ofc_mean_fr = np.mean(feierstein_ofc_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(buzsaki_acc_mean)
+mean_diff = np.diff(feierstein_ofc_mean)
 
 neg_mean_diffs = []
 
@@ -258,27 +258,27 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-buzsaki_acc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],buzsaki_acc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+feierstein_ofc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],feierstein_ofc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,buzsaki_acc_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*buzsaki_acc_pars),label='fit curve')
+plt.plot(x_m,feierstein_ofc_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*feierstein_ofc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat acc units \n Buzsaki')
-plt.text(710,0.075,'tau = %i ms \n fr = %.2f hz \n n = %i' % (buzsaki_acc_pars[1],buzsaki_acc_mean_fr,len(buzsaki_acc_taus)))
+plt.title('Mean of all Rat OFC units \n Feierstein')
+plt.text(710,0.0305,'tau = %i ms \n fr = %.2f hz \n n = %i' % (feierstein_ofc_pars[1],feierstein_ofc_mean_fr,len(feierstein_ofc_taus)))
 plt.show()
 
 
 #%% Add error bars
 
-plt.errorbar(x_m, buzsaki_acc_mean, yerr=buzsaki_acc_se, label='data +/- se')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*buzsaki_acc_pars),label='fit curve')
+plt.errorbar(x_m, feierstein_ofc_mean, yerr=feierstein_ofc_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*feierstein_ofc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat acc units \n Buzsaki')
-plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (buzsaki_acc_pars[1],buzsaki_acc_mean_fr,len(buzsaki_acc_taus)))
+plt.title('Mean of all Rat OFC units \n Feierstein')
+plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (feierstein_ofc_pars[1],feierstein_ofc_mean_fr,len(feierstein_ofc_taus)))
 plt.ylim((0,0.16))
 plt.show()
 
@@ -286,20 +286,20 @@ plt.show()
 
 bins = 10**np.arange(0,4,0.1)
 
-plt.hist(buzsaki_acc_taus,bins=bins, weights=np.zeros_like(buzsaki_acc_taus) + 1. / len(buzsaki_acc_taus))
+plt.hist(feierstein_ofc_taus,bins=bins, weights=np.zeros_like(feierstein_ofc_taus) + 1. / len(feierstein_ofc_taus))
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
-plt.title('%i Rat ACC units \n Buzsaki' %len(buzsaki_acc_taus))
+plt.title('%i Rat OFC units \n Feierstein' %len(feierstein_ofc_taus))
 plt.show()
 
 #%% Correlation matrix
 
-buzsaki_acc_mean_matrix = np.mean(buzsaki_acc_correlation_matrices,axis=0)
+feierstein_ofc_mean_matrix = np.mean(feierstein_ofc_correlation_matrices,axis=0)
 
-plt.imshow(buzsaki_acc_mean_matrix)
+plt.imshow(feierstein_ofc_mean_matrix)
 plt.tight_layout()
-plt.title('Buzsaki Rat acc')
+plt.title('Feierstein Rat OFC')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
 plt.xticks(range(0,20,2),range(0,1000,100))

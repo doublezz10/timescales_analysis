@@ -268,10 +268,13 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(np.log(steinmetz_ila_taus))
-plt.xlabel('log(tau)')
-plt.ylabel('count')
-plt.title('%i mouse ILA units \n Steinmetz' %len(steinmetz_ila_taus))
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(steinmetz_ila_taus,bins=bins, weights=np.zeros_like(steinmetz_ila_taus) + 1. / len(steinmetz_ila_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
+plt.title('%i Mouse ILA units \n Steinmetz' %len(steinmetz_ila_taus))
 plt.show()
 
 #%% Correlation matrix

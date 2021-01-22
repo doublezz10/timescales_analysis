@@ -263,10 +263,13 @@ plt.show()
 
 #%% Histogram of taus
 
-plt.hist(np.log(minxha_presma_taus))
-plt.xlabel('log(tau)')
-plt.ylabel('count')
-plt.title('%i human preSMA units' %len(minxha_presma_taus))
+bins = 10**np.arange(0,4,0.1)
+
+plt.hist(minxha_presma_taus,bins=bins, weights=np.zeros_like(minxha_presma_taus) + 1. / len(minxha_presma_taus))
+plt.xlabel('tau (ms)')
+plt.ylabel('proportion')
+plt.xscale('log')
+plt.title('%i Human preSMA units \n Minxha' %len(minxha_presma_taus))
 plt.show()
 
 #%% Correlation matrix
