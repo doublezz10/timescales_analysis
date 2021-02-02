@@ -44,7 +44,7 @@ for unit in range(len(spikes)):
 
     binned_spikes, edges = np.histogram(unit_spikes,bins=bins)
 
-    # Every 5 seconds is a new "trial"
+    # Every 3 seconds is a new "trial"
 
     binned_unit_spikes = []
 
@@ -218,13 +218,13 @@ for unit in range(len(spikes)):
 
         buzsaki_mpfc_all_means.append(y_m)
 
-        plt.plot(x_m,y_m,'ro',label='original data')
-        plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
-        plt.xlabel('lag (ms)')
-        plt.ylabel('mean autocorrelation')
-        plt.title('Rat mpfc %i' %unit)
-        plt.legend()
-        plt.show()
+        # plt.plot(x_m,y_m,'ro',label='original data')
+        # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+        # plt.xlabel('lag (ms)')
+        # plt.ylabel('mean autocorrelation')
+        # plt.title('Rat mpfc %i' %unit)
+        # plt.legend()
+        # plt.show()
 
 #%% How many units got filtered?
 
@@ -265,7 +265,7 @@ plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*buzsaki_mpfc_
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat mpfc units \n Buzsaki')
+plt.title('Mean of all rat mpfc units \n Buzsaki')
 plt.text(710,0.075,'tau = %i ms \n fr = %.2f hz \n n = %i' % (buzsaki_mpfc_pars[1],buzsaki_mpfc_mean_fr,len(buzsaki_mpfc_taus)))
 plt.show()
 
@@ -277,7 +277,7 @@ plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*buzsaki_mpfc_
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat mpfc units \n Buzsaki')
+plt.title('Mean of all rat mPFC units \n Buzsaki')
 plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (buzsaki_mpfc_pars[1],buzsaki_mpfc_mean_fr,len(buzsaki_mpfc_taus)))
 plt.ylim((0,0.16))
 plt.show()

@@ -280,6 +280,18 @@ plt.title('Mean of all monkey acc units \n Hunt')
 plt.text(100,0.095,'tau = %i ms \n fr = %.2f hz \n n = %i' % (hunt_acc_pars[1],hunt_acc_mean_fr,len(hunt_acc_taus)))
 plt.show()
 
+#%% Add error bars
+
+plt.errorbar(x_m, hunt_acc_mean, yerr=hunt_acc_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*hunt_acc_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all monkey ACC \n Hunt')
+plt.text(300,0.04,'tau = %i ms \n fr = %.2f hz \n n = %i' % (hunt_acc_pars[1],hunt_acc_mean_fr,len(hunt_acc_taus)))
+plt.ylim((0,0.16))
+plt.show()
+
 #%% Histogram of taus
 
 plt.hist(np.log(hunt_acc_taus))

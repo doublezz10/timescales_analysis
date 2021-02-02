@@ -264,7 +264,19 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
 plt.title('Mean of all mouse CA3 units \n Steinmetz')
-plt.text(710,0.08,'tau = %i ms \n fr = %.2f hz \n n = %i' % (steinmetz_ca3_pars[1],steinmetz_ca3_mean_fr,len(steinmetz_ca3_taus))))
+plt.text(710,0.08,'tau = %i ms \n fr = %.2f hz \n n = %i' % (steinmetz_ca3_pars[1],steinmetz_ca3_mean_fr,len(steinmetz_ca3_taus)))
+plt.show()
+
+#%% Add error bars
+
+plt.errorbar(x_m, steinmetz_ca3_mean, yerr=steinmetz_ca3_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*steinmetz_ca3_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all mouse CA3 units \n Steinmetz')
+plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (steinmetz_ca3_pars[1],steinmetz_ca3_mean_fr,len(steinmetz_ca3_taus)))
+plt.ylim((0,0.16))
 plt.show()
 
 #%% Histogram of taus

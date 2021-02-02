@@ -214,10 +214,10 @@ for unit in range(len(spikes)):
             meg_amyg_all_means.append(y_m)
 
             # plt.plot(x_m,y_m,'ro',label='original data')
-            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit (tau = %i)' %pars[1])
             # plt.xlabel('lag (ms)')
             # plt.ylabel('mean autocorrelation')
-            # plt.title('Monkey amygdala %i' %unit)
+            # plt.title('Meg amygdala %i' %unit)
             # plt.legend()
             # plt.show()
 

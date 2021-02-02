@@ -278,8 +278,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
 plt.title('Mean of all Rat OFC units \n Feierstein')
-plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (feierstein_ofc_pars[1],feierstein_ofc_mean_fr,len(feierstein_ofc_taus)))
-plt.ylim((0,0.16))
+plt.text(710,0.0175,'tau = %i ms \n fr = %.2f hz \n n = %i' % (feierstein_ofc_pars[1],feierstein_ofc_mean_fr,len(feierstein_ofc_taus)))
 plt.show()
 
 #%% Histogram of taus

@@ -262,6 +262,18 @@ plt.title('Mean of all human hippocampus units \n Minxha')
 plt.text(710,0.03,'tau = %i ms \n fr = %.2f hz \n n = %i' % (minxha_hc_pars[1],minxha_hc_mean_fr,len(minxha_hc_taus)))
 plt.show()
 
+#%% Add error bars
+
+plt.errorbar(x_m, minxha_hc_mean, yerr=minxha_hc_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*minxha_hc_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all human hippocampus units \n Minxha')
+plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (minxha_hc_pars[1],minxha_hc_mean_fr,len(minxha_hc_taus)))
+plt.ylim((0,0.16))
+plt.show()
+
 #%% Histogram of taus
 
 bins = 10**np.arange(0,4,0.1)

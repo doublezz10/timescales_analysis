@@ -262,6 +262,18 @@ plt.title('Mean of all monkey dlpfc units \n Hunt')
 plt.text(100,0.060,'tau = %i ms \n fr = %.2f hz \n n = %i' % (hunt_dlpfc_pars[1],hunt_dlpfc_mean_fr,len(hunt_dlpfc_taus)))
 plt.show()
 
+#%% Add error bars
+
+plt.errorbar(x_m, hunt_dlpfc_mean, yerr=hunt_dlpfc_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*hunt_dlpfc_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all monkey DLPFC \n Hunt')
+plt.text(300,0.12,'tau = %i ms \n fr = %.2f hz \n n = %i' % (hunt_dlpfc_pars[1],hunt_dlpfc_mean_fr,len(hunt_dlpfc_taus)))
+plt.ylim((0,0.16))
+plt.show()
+
 #%% Histogram of taus
 
 plt.hist(np.log(hunt_dlpfc_taus))

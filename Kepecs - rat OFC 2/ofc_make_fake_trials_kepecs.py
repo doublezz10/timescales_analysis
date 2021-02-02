@@ -280,8 +280,7 @@ plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
 plt.title('Mean of all Rat OFC units \n Kepecs')
-plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
-plt.ylim((0,0.16))
+plt.text(710,0.015,'tau = %i ms \n fr = %.2f hz \n n = %i' % (kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
 plt.show()
 
 #%% Histogram of taus

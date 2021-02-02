@@ -213,10 +213,10 @@ for unit in range(len(spikes)):
                 steinmetz_bla_all_means.append(y_m)
 
                 # plt.plot(x_m,y_m,'ro',label='original data')
-                # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+                # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit (tau = %i)' %pars[1])
                 # plt.xlabel('lag (ms)')
                 # plt.ylabel('mean autocorrelation')
-                # plt.title('Mouse BLA %i' %unit)
+                # plt.title('Steinmetz BLA %i' %unit)
                 # plt.legend()
                 # plt.show()
 

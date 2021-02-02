@@ -13,6 +13,13 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import pandas as pd
 
+#%% Labels
+
+"""
+1 = OFC
+2 = ACC
+"""
+
 #%% Load data
 
 froot_pre = pd.read_csv('/Users/zachz/Dropbox/Timescales across species/By trial/FROOT/pre_foreperiod.txt',delimiter='\s+',header=None,names=['pre/post','unit_name','date','?','??','???','????','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20'])
@@ -82,16 +89,16 @@ for unique_unit in range(len(froot_post_units)):
 
 # Pre Brain Area 1
 
-pre_1_all_means = []
-pre_1_taus = []
-pre_1_failed_fits = []
+ofc_pre_all_means = []
+ofc_pre_taus = []
+ofc_pre_failed_fits = []
 
-pre_1_failed_autocorr = []
-pre_1_no_spikes_in_a_bin = []
-pre_1_low_fr = []
+ofc_pre_failed_autocorr = []
+ofc_pre_no_spikes_in_a_bin = []
+ofc_pre_low_fr = []
 
-pre_1_avg_fr = []
-pre_1_correlation_matrices = []
+ofc_pre_avg_fr = []
+ofc_pre_correlation_matrices = []
 
 for unit in range(len(pre_brain_area_1)):
 
@@ -101,7 +108,7 @@ for unit in range(len(pre_brain_area_1)):
 
     summed_spikes_per_bin = np.sum(binned_spikes,axis=0)
 
-    pre_1_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+    ofc_pre_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
     #%% Do autocorrelation
 
@@ -118,15 +125,15 @@ for unit in range(len(pre_brain_area_1)):
 
     if np.isnan(one_autocorrelation).any() == True:
 
-        pre_1_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+        ofc_pre_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
     elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
         # If there is not a spike in every bin
-        pre_1_no_spikes_in_a_bin.append(unit)
+        ofc_pre_no_spikes_in_a_bin.append(unit)
 
     elif np.sum(summed_spikes_per_bin)/trials < 1:
 
-        pre_1_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+        ofc_pre_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
     else:
 
@@ -134,7 +141,7 @@ for unit in range(len(pre_brain_area_1)):
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,20))
 
-        pre_1_correlation_matrices.append(correlation_matrix)
+        ofc_pre_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
         # plt.title('Froot pre 1 unit %i' %unit)
@@ -199,7 +206,7 @@ for unit in range(len(pre_brain_area_1)):
         y_s = np.array(y_s)
 
         # plt.plot(x_s,y_s,'ro')
-        # plt.title('Froot pre 1 unit %i' %unit)
+        # plt.title('Froot OFC pre unit %i' %unit)
         # plt.xlabel('lag (ms)')
         # plt.ylabel('autocorrelation')
         # plt.show()
@@ -251,39 +258,41 @@ for unit in range(len(pre_brain_area_1)):
 
         except RuntimeError:
             print("Error - curve_fit failed; unit %i" %unit)
-            pre_1_failed_fits.append(unit)
+            ofc_pre_failed_fits.append(unit)
 
-        pre_1_taus.append(pars[1])
+        ofc_pre_taus.append(pars[1])
 
-        pre_1_all_means.append(y_m)
+        ofc_pre_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro')
         # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
-        # plt.title('Froot 1 pre unit %i' %unit)
+        # plt.title('Froot OFC pre unit %i' %unit)
         # plt.show()
 
 
 #%% How many units got filtered?
 
-bad_units = len(pre_1_failed_autocorr) + len(pre_1_no_spikes_in_a_bin) + len(pre_1_low_fr)
+bad_units = len(ofc_pre_failed_autocorr) + len(ofc_pre_no_spikes_in_a_bin) + len(ofc_pre_low_fr)
 
 print('%i units were filtered out' %bad_units)
 print('out of %i total units' %len(pre_brain_area_1))
 
 #%% Take mean of all units
 
-pre_1_all_means = np.vstack(pre_1_all_means)
+ofc_pre_all_means = np.vstack(ofc_pre_all_means)
 
-pre_1_mean = np.mean(pre_1_all_means,axis=0)
-pre_1_sd = np.std(pre_1_all_means,axis=0)
-pre_1_se = pre_1_sd/np.sqrt(len(pre_1_mean))
+ofc_pre_mean = np.mean(ofc_pre_all_means,axis=0)
+ofc_pre_sd = np.std(ofc_pre_all_means,axis=0)
+ofc_pre_se = ofc_pre_sd/np.sqrt(len(ofc_pre_mean))
+
+ofc_pre_mean_fr = np.mean(ofc_pre_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(minxha_dacc_mean)
+mean_diff = np.diff(ofc_pre_mean)
 
 neg_mean_diffs = []
 
@@ -295,42 +304,54 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-pre_1_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],pre_1_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+ofc_pre_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],ofc_pre_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,pre_1_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*pre_1_pars),label='fit curve')
+plt.plot(x_m,ofc_pre_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*ofc_pre_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Froot 1 pre')
-plt.text(710,0.1,'tau = %i' %pre_1_pars[1])
+plt.title('Froot OFC pre')
+plt.text(710,0.1,'tau = %i \n fr = %.2f \n n = %i' % (ofc_pre_pars[1], ofc_pre_mean_fr, len(ofc_pre_taus)))
+plt.show()
+
+#%% Add error bars
+
+plt.errorbar(x_m, ofc_pre_mean, yerr=ofc_pre_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*ofc_pre_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all monkey OFC pre units \n FROOT')
+plt.text(710,0.1,'tau = %i ms \n fr = %.2f hz \n n = %i' % (ofc_pre_pars[1],ofc_pre_mean_fr,len(ofc_pre_taus)))
+plt.ylim((0,0.2))
 plt.show()
 
 #%% Histogram of taus
 
 bins = 10**np.arange(0,4,0.1)
 
-plt.hist(pre_1_taus,bins=bins, weights=np.zeros_like(pre_1_taus) + 1. / len(pre_1_taus))
+plt.hist(ofc_pre_taus,bins=bins, weights=np.zeros_like(ofc_pre_taus) + 1. / len(ofc_pre_taus))
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
-plt.title('%i Froot 1 pre units' %len(pre_1_taus))
+plt.title('%i Froot OFC pre units' %len(ofc_pre_taus))
 plt.show()
 
 #%% Compute autocorrelation
 
 # Pre Brain Area 1
 
-pre_2_all_means = []
-pre_2_taus = []
-pre_2_failed_fits = []
+acc_pre_all_means = []
+acc_pre_taus = []
+acc_pre_failed_fits = []
 
-pre_2_failed_autocorr = []
-pre_2_no_spikes_in_a_bin = []
-pre_2_low_fr = []
+acc_pre_failed_autocorr = []
+acc_pre_no_spikes_in_a_bin = []
+acc_pre_low_fr = []
 
-pre_2_avg_fr = []
-pre_2_correlation_matrices = []
+acc_pre_avg_fr = []
+acc_pre_correlation_matrices = []
 
 for unit in range(len(pre_brain_area_2)):
 
@@ -340,7 +361,7 @@ for unit in range(len(pre_brain_area_2)):
 
     summed_spikes_per_bin = np.sum(binned_spikes,axis=0)
 
-    pre_2_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+    acc_pre_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
     #%% Do autocorrelation
 
@@ -357,15 +378,15 @@ for unit in range(len(pre_brain_area_2)):
 
     if np.isnan(one_autocorrelation).any() == True:
 
-        pre_2_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+        acc_pre_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
     elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
         # If there is not a spike in every bin
-        pre_2_no_spikes_in_a_bin.append(unit)
+        acc_pre_no_spikes_in_a_bin.append(unit)
 
     elif np.sum(summed_spikes_per_bin)/trials < 1:
 
-        pre_2_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+        acc_pre_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
     else:
 
@@ -373,10 +394,10 @@ for unit in range(len(pre_brain_area_2)):
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,20))
 
-        pre_2_correlation_matrices.append(correlation_matrix)
+        acc_pre_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
-        # plt.title('Froot pre 2 unit %i' %unit)
+        # plt.title('Froot ACC pre unit %i' %unit)
         # plt.xlabel('lag')
         # plt.ylabel('lag')
         # plt.xticks(range(0,19))
@@ -438,7 +459,7 @@ for unit in range(len(pre_brain_area_2)):
         y_s = np.array(y_s)
 
         # plt.plot(x_s,y_s,'ro')
-        # plt.title('Froot pre 2 unit %i' %unit)
+        # plt.title('Froot ACC pre unit %i' %unit)
         # plt.xlabel('lag (ms)')
         # plt.ylabel('autocorrelation')
         # plt.show()
@@ -490,39 +511,41 @@ for unit in range(len(pre_brain_area_2)):
 
         except RuntimeError:
             print("Error - curve_fit failed; unit %i" %unit)
-            pre_2_failed_fits.append(unit)
+            acc_pre_failed_fits.append(unit)
 
-        pre_2_taus.append(pars[1])
+        acc_pre_taus.append(pars[1])
 
-        pre_2_all_means.append(y_m)
+        acc_pre_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro')
         # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
-        # plt.title('Froot 2 pre unit %i' %unit)
+        # plt.title('Froot ACC pre unit %i' %unit)
         # plt.show()
 
 
 #%% How many units got filtered?
 
-bad_units = len(pre_2_failed_autocorr) + len(pre_2_no_spikes_in_a_bin) + len(pre_2_low_fr)
+bad_units = len(acc_pre_failed_autocorr) + len(acc_pre_no_spikes_in_a_bin) + len(acc_pre_low_fr)
 
 print('%i units were filtered out' %bad_units)
 print('out of %i total units' %len(pre_brain_area_1))
 
 #%% Take mean of all units
 
-pre_2_all_means = np.vstack(pre_2_all_means)
+acc_pre_all_means = np.vstack(acc_pre_all_means)
 
-pre_2_mean = np.mean(pre_2_all_means,axis=0)
-pre_2_sd = np.std(pre_2_all_means,axis=0)
-pre_2_se = pre_2_sd/np.sqrt(len(pre_2_mean))
+acc_pre_mean = np.mean(acc_pre_all_means,axis=0)
+acc_pre_sd = np.std(acc_pre_all_means,axis=0)
+acc_pre_se = acc_pre_sd/np.sqrt(len(acc_pre_mean))
+
+acc_pre_mean_fr = np.mean(acc_pre_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(minxha_dacc_mean)
+mean_diff = np.diff(acc_pre_mean)
 
 neg_mean_diffs = []
 
@@ -534,42 +557,54 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-pre_2_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],pre_2_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+acc_pre_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],acc_pre_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,pre_2_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*pre_2_pars),label='fit curve')
+plt.plot(x_m,acc_pre_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*acc_pre_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Froot 2 pre')
-plt.text(710,0.1,'tau = %i' %pre_2_pars[1])
+plt.title('Froot ACC pre')
+plt.text(710,0.1,'tau = %i \n fr = %.2f \n n = %i' % (acc_pre_pars[1], acc_pre_mean_fr, len(acc_pre_taus)))
+plt.show()
+
+#%% Add error bars
+
+plt.errorbar(x_m, acc_pre_mean, yerr=acc_pre_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*acc_pre_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all monkey ACC pre units \n FROOT')
+plt.text(710,0.1,'tau = %i ms \n fr = %.2f hz \n n = %i' % (acc_pre_pars[1],acc_pre_mean_fr,len(acc_pre_taus)))
+plt.ylim((0,0.2))
 plt.show()
 
 #%% Histogram of taus
 
 bins = 10**np.arange(0,4,0.1)
 
-plt.hist(pre_2_taus,bins=bins, weights=np.zeros_like(pre_2_taus) + 1. / len(pre_2_taus))
+plt.hist(acc_pre_taus,bins=bins, weights=np.zeros_like(acc_pre_taus) + 1. / len(acc_pre_taus))
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
-plt.title('%i Froot pre 2' %len(pre_2_taus))
+plt.title('%i Froot ACC pre' %len(acc_pre_taus))
 plt.show()
 
 #%% Start computing autocorrelation
 
 # post Brain Area 1
 
-post_1_all_means = []
-post_1_taus = []
-post_1_failed_fits = []
+ofc_post_all_means = []
+ofc_post_taus = []
+ofc_post_failed_fits = []
 
-post_1_failed_autocorr = []
-post_1_no_spikes_in_a_bin = []
-post_1_low_fr = []
+ofc_post_failed_autocorr = []
+ofc_post_no_spikes_in_a_bin = []
+ofc_post_low_fr = []
 
-post_1_avg_fr = []
-post_1_correlation_matrices = []
+ofc_post_avg_fr = []
+ofc_post_correlation_matrices = []
 
 for unit in range(len(post_brain_area_1)):
 
@@ -579,7 +614,7 @@ for unit in range(len(post_brain_area_1)):
 
     summed_spikes_per_bin = np.sum(binned_spikes,axis=0)
 
-    post_1_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+    ofc_post_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
     #%% Do autocorrelation
 
@@ -596,15 +631,15 @@ for unit in range(len(post_brain_area_1)):
 
     if np.isnan(one_autocorrelation).any() == True:
 
-        post_1_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+        ofc_post_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
     elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
         # If there is not a spike in every bin
-        post_1_no_spikes_in_a_bin.append(unit)
+        ofc_post_no_spikes_in_a_bin.append(unit)
 
     elif np.sum(summed_spikes_per_bin)/trials < 1:
 
-        post_1_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+        ofc_post_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
     else:
 
@@ -612,10 +647,10 @@ for unit in range(len(post_brain_area_1)):
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,20))
 
-        post_1_correlation_matrices.append(correlation_matrix)
+        ofc_post_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
-        # plt.title('Froot post 1 unit %i' %unit)
+        # plt.title('Froot OFC post unit %i' %unit)
         # plt.xlabel('lag')
         # plt.ylabel('lag')
         # plt.xticks(range(0,19))
@@ -677,7 +712,7 @@ for unit in range(len(post_brain_area_1)):
         y_s = np.array(y_s)
 
         # plt.plot(x_s,y_s,'ro')
-        # plt.title('Froot post 1 unit %i' %unit)
+        # plt.title('Froot OFC post unit %i' %unit)
         # plt.xlabel('lag (ms)')
         # plt.ylabel('autocorrelation')
         # plt.show()
@@ -729,39 +764,41 @@ for unit in range(len(post_brain_area_1)):
 
         except RuntimeError:
             print("Error - curve_fit failed; unit %i" %unit)
-            post_1_failed_fits.append(unit)
+            ofc_post_failed_fits.append(unit)
 
-        post_1_taus.append(pars[1])
+        ofc_post_taus.append(pars[1])
 
-        post_1_all_means.append(y_m)
+        ofc_post_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro')
         # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
-        # plt.title('Froot 1 post unit %i' %unit)
+        # plt.title('Froot OFC post unit %i' %unit)
         # plt.show()
 
 
 #%% How many units got filtered?
 
-bad_units = len(post_1_failed_autocorr) + len(post_1_no_spikes_in_a_bin) + len(post_1_low_fr)
+bad_units = len(ofc_post_failed_autocorr) + len(ofc_post_no_spikes_in_a_bin) + len(ofc_post_low_fr)
 
 print('%i units were filtered out' %bad_units)
 print('out of %i total units' %len(post_brain_area_1))
 
 #%% Take mean of all units
 
-post_1_all_means = np.vstack(post_1_all_means)
+ofc_post_all_means = np.vstack(ofc_post_all_means)
 
-post_1_mean = np.mean(post_1_all_means,axis=0)
-post_1_sd = np.std(post_1_all_means,axis=0)
-post_1_se = post_1_sd/np.sqrt(len(post_1_mean))
+ofc_post_mean = np.mean(ofc_post_all_means,axis=0)
+ofc_post_sd = np.std(ofc_post_all_means,axis=0)
+ofc_post_se = ofc_post_sd/np.sqrt(len(ofc_post_mean))
+
+ofc_post_mean_fr = np.mean(ofc_post_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(minxha_dacc_mean)
+mean_diff = np.diff(ofc_post_mean)
 
 neg_mean_diffs = []
 
@@ -773,42 +810,54 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-post_1_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],post_1_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+ofc_post_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],ofc_post_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,post_1_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*post_1_pars),label='fit curve')
+plt.plot(x_m,ofc_post_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*ofc_post_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Froot 1 post')
-plt.text(710,0.1,'tau = %i' %post_1_pars[1])
+plt.title('Froot OFC post')
+plt.text(710,0.1,'tau = %i \n fr = %.2f \n n = %i' % (ofc_post_pars[1], ofc_post_mean_fr, len(ofc_post_taus)))
+plt.show()
+
+#%% Add error bars
+
+plt.errorbar(x_m, ofc_post_mean, yerr=ofc_post_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*ofc_post_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all monkey OFC post units \n FROOT')
+plt.text(710,0.1,'tau = %i ms \n fr = %.2f hz \n n = %i' % (ofc_post_pars[1],ofc_post_mean_fr,len(ofc_post_taus)))
+plt.ylim((0,0.2))
 plt.show()
 
 #%% Histogram of taus
 
 bins = 10**np.arange(0,4,0.1)
 
-plt.hist(post_1_taus,bins=bins, weights=np.zeros_like(post_1_taus) + 1. / len(post_1_taus))
+plt.hist(ofc_post_taus,bins=bins, weights=np.zeros_like(ofc_post_taus) + 1. / len(ofc_post_taus))
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
-plt.title('%i Froot post 1 units' %len(post_1_taus))
+plt.title('%i Froot OFC post units' %len(ofc_post_taus))
 plt.show()
 
 #%% Compute autocorrelation
 
 # post Brain Area 2
 
-post_2_all_means = []
-post_2_taus = []
-post_2_failed_fits = []
+acc_post_all_means = []
+acc_post_taus = []
+acc_post_failed_fits = []
 
-post_2_failed_autocorr = []
-post_2_no_spikes_in_a_bin = []
-post_2_low_fr = []
+acc_post_failed_autocorr = []
+acc_post_no_spikes_in_a_bin = []
+acc_post_low_fr = []
 
-post_2_avg_fr = []
-post_2_correlation_matrices = []
+acc_post_avg_fr = []
+acc_post_correlation_matrices = []
 
 for unit in range(len(post_brain_area_2)):
 
@@ -818,7 +867,7 @@ for unit in range(len(post_brain_area_2)):
 
     summed_spikes_per_bin = np.sum(binned_spikes,axis=0)
 
-    post_2_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+    acc_post_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
     #%% Do autocorrelation
 
@@ -835,15 +884,15 @@ for unit in range(len(post_brain_area_2)):
 
     if np.isnan(one_autocorrelation).any() == True:
 
-        post_2_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+        acc_post_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
     elif np.any(summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))) == True:
         # If there is not a spike in every bin
-        post_2_no_spikes_in_a_bin.append(unit)
+        acc_post_no_spikes_in_a_bin.append(unit)
 
     elif np.sum(summed_spikes_per_bin)/trials < 1:
 
-        post_2_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+        acc_post_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
     else:
 
@@ -851,10 +900,10 @@ for unit in range(len(post_brain_area_2)):
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,20))
 
-        post_2_correlation_matrices.append(correlation_matrix)
+        acc_post_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
-        # plt.title('Froot post 2 unit %i' %unit)
+        # plt.title('Froot ACC post unit %i' %unit)
         # plt.xlabel('lag')
         # plt.ylabel('lag')
         # plt.xticks(range(0,19))
@@ -916,7 +965,7 @@ for unit in range(len(post_brain_area_2)):
         y_s = np.array(y_s)
 
         # plt.plot(x_s,y_s,'ro')
-        # plt.title('Froot post 2 unit %i' %unit)
+        # plt.title('Froot ACC post unit %i' %unit)
         # plt.xlabel('lag (ms)')
         # plt.ylabel('autocorrelation')
         # plt.show()
@@ -968,39 +1017,41 @@ for unit in range(len(post_brain_area_2)):
 
         except RuntimeError:
             print("Error - curve_fit failed; unit %i" %unit)
-            post_2_failed_fits.append(unit)
+            acc_post_failed_fits.append(unit)
 
-        post_2_taus.append(pars[1])
+        acc_post_taus.append(pars[1])
 
-        post_2_all_means.append(y_m)
+        acc_post_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro')
         # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
-        # plt.title('Froot 2 post unit %i' %unit)
+        # plt.title('Froot ACC post unit %i' %unit)
         # plt.show()
 
 
 #%% How many units got filtered?
 
-bad_units = len(post_2_failed_autocorr) + len(post_2_no_spikes_in_a_bin) + len(post_2_low_fr)
+bad_units = len(acc_post_failed_autocorr) + len(acc_post_no_spikes_in_a_bin) + len(acc_post_low_fr)
 
 print('%i units were filtered out' %bad_units)
 print('out of %i total units' %len(post_brain_area_1))
 
 #%% Take mean of all units
 
-post_2_all_means = np.vstack(post_2_all_means)
+acc_post_all_means = np.vstack(acc_post_all_means)
 
-post_2_mean = np.mean(post_2_all_means,axis=0)
-post_2_sd = np.std(post_2_all_means,axis=0)
-post_2_se = post_2_sd/np.sqrt(len(post_2_mean))
+acc_post_mean = np.mean(acc_post_all_means,axis=0)
+acc_post_sd = np.std(acc_post_all_means,axis=0)
+acc_post_se = acc_post_sd/np.sqrt(len(acc_post_mean))
+
+acc_post_mean_fr = np.mean(acc_post_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(minxha_dacc_mean)
+mean_diff = np.diff(acc_post_mean)
 
 neg_mean_diffs = []
 
@@ -1012,50 +1063,62 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-post_2_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],post_2_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+acc_post_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],acc_post_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,post_2_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*post_2_pars),label='fit curve')
+plt.plot(x_m,acc_post_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*acc_post_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Froot 2 post')
-plt.text(710,0.1,'tau = %i' %post_2_pars[1])
+plt.title('Froot ACC post')
+plt.text(710,0.1,'tau = %i \n fr = %.2f \n n = %i' % (acc_post_pars[1], acc_post_mean_fr, len(acc_post_taus)))
+plt.show()
+
+#%% Add error bars
+
+plt.errorbar(x_m, acc_post_mean, yerr=acc_post_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*acc_post_pars),label='fit curve')
+plt.legend(loc='upper right')
+plt.xlabel('lag (ms)')
+plt.ylabel('autocorrelation')
+plt.title('Mean of all monkey ACC post units \n FROOT')
+plt.text(710,0.1,'tau = %i ms \n fr = %.2f hz \n n = %i' % (acc_post_pars[1],acc_post_mean_fr,len(acc_post_taus)))
+plt.ylim((0,0.2))
 plt.show()
 
 #%% Histogram of taus
 
 bins = 10**np.arange(0,4,0.1)
 
-plt.hist(post_2_taus,bins=bins, weights=np.zeros_like(post_2_taus) + 1. / len(post_2_taus))
+plt.hist(acc_post_taus,bins=bins, weights=np.zeros_like(acc_post_taus) + 1. / len(acc_post_taus))
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
-plt.title('%i Froot post 2 units' %len(post_2_taus))
+plt.title('%i Froot ACC post units' %len(acc_post_taus))
 plt.show()
 
 #%% Correlation matrices
 
-pre_1_mean_matrix = np.mean(pre_1_correlation_matrices,axis=0)
-pre_2_mean_matrix = np.mean(pre_2_correlation_matrices,axis=0)
-post_1_mean_matrix = np.mean(post_1_correlation_matrices,axis=0)
-post_2_mean_matrix = np.mean(post_2_correlation_matrices,axis=0)
+# ofc_pre_mean_matrix = np.mean(ofc_pre_correlation_matrices,axis=0)
+# acc_pre_mean_matrix = np.mean(acc_pre_correlation_matrices,axis=0)
+# ofc_post_mean_matrix = np.mean(ofc_post_correlation_matrices,axis=0)
+# acc_post_mean_matrix = np.mean(acc_post_correlation_matrices,axis=0)
 
-fig, axs = plt.subplots(2, 2, sharex='all', sharey='all')
+# fig, axs = plt.subplots(2, 2, sharex='all', sharey='all')
 
-plt.title('FROOT')
+# plt.title('FROOT')
 
-axs[0,0].imshow(pre_1_mean_matrix,cmap='inferno')
-axs[0,0].set_title('pre 1')
+# axs[0,0].imshow(ofc_pre_mean_matrix,cmap='inferno')
+# axs[0,0].set_title('pre 1')
 
-axs[0,1].imshow(pre_2_mean_matrix,cmap='inferno')
-axs[0,1].set_title('pre 2')
+# axs[0,1].imshow(acc_pre_mean_matrix,cmap='inferno')
+# axs[0,1].set_title('pre 2')
 
-axs[1,0].imshow(post_1_mean_matrix,cmap='inferno')
-axs[1,0].set_title('post 1')
+# axs[1,0].imshow(ofc_post_mean_matrix,cmap='inferno')
+# axs[1,0].set_title('post 1')
 
-axs[1,1].imshow(post_2_mean_matrix,cmap='inferno')
-axs[1,1].set_title('post 2')
+# axs[1,1].imshow(acc_post_mean_matrix,cmap='inferno')
+# axs[1,1].set_title('post 2')
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()

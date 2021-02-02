@@ -152,7 +152,7 @@ for unit in range(len(spikes)):
             y_s = np.array(y_s)
 
             # plt.plot(x_s,y_s,'ro')
-            # plt.title('Human amygdala unit %i' %unit)
+            # plt.title('Faraut amygdala unit %i' %unit)
             # plt.xlabel('lag (ms)')
             # plt.ylabel('autocorrelation')
             # plt.show()
@@ -211,10 +211,10 @@ for unit in range(len(spikes)):
             faraut_amyg_all_means.append(y_m)
 
             # plt.plot(x_m,y_m,'ro',label='original data')
-            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit (tau = %i)' %pars[1])
             # plt.xlabel('lag (ms)')
             # plt.ylabel('mean autocorrelation')
-            # plt.title('Human amygdala %i' %unit)
+            # plt.title('Faraut amygdala %i' %unit)
             # plt.legend()
             # plt.show()
 

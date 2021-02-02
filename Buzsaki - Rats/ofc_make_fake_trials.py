@@ -46,7 +46,7 @@ for unit in range(len(spikes)):
 
     binned_spikes, edges = np.histogram(unit_spikes,bins=bins)
 
-    # Every 5 seconds is a new "trial"
+    # Every 3 seconds is a new "trial"
 
     binned_unit_spikes = []
 
