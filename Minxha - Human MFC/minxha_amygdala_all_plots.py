@@ -12,8 +12,14 @@ import numpy as np
 import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import random
+import warnings
+warnings.filterwarnings("ignore")
+import time
 
 #%% Load in data
+
+tic = time.perf_counter()
 
 amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minxha - Human MFC/amygdala.mat',simplify_cells=True)
 
@@ -23,6 +29,7 @@ spikes = amy['spikes']
 
 minxha_amyg_all_means = []
 minxha_amyg_taus = []
+minxha_amyg_bad_taus = []
 minxha_amyg_failed_fits = []
 
 
@@ -32,6 +39,8 @@ minxha_amyg_low_fr = []
 
 minxha_amyg_avg_fr = []
 minxha_amyg_correlation_matrices = []
+
+minxha_amyg_r2 = []
 
 for unit in range(len(spikes)):
 
@@ -199,26 +208,54 @@ for unit in range(len(spikes)):
 
             def func(x,a,tau,b):
                 return a*((np.exp(-x/tau))+b)
-
-            try:
-                pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[1,100,1],bounds=((0,np.inf)),maxfev=5000)
-
-            except RuntimeError:
-                print("Error - curve_fit failed")
-                minxha_amyg_failed_fits.append(unit)
-
-            minxha_amyg_taus.append(pars[1])
+            
+            tau_test = []
+            r2_test = []
+            all_pars = []
+            
+            for guess in range(200):
+                
+                a = random.uniform(0,20)
+                b = random.uniform(0,20)
+                tau = random.uniform(0,1000)
+                
+                try:
+                    pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[a,tau,b],bounds=((0,1000)),maxfev=5000)
+                    all_pars.append(pars)
+                    tau_test.append(pars[1])
+                    rrr = np.corrcoef(y_m,func(x_m[first_neg_diff:],*pars))
+                    r2_test.append(rrr[0,1]**2)
+    
+                except RuntimeError:
+                    print("Error - curve_fit failed")
+                    
+            best_r2 = np.max(r2_test)
+            minxha_amyg_r2.append(best_r2)
+            best_tau = tau_test[np.argmax(r2_test)]
+            
+            if best_r2 >= 0.3:
+                
+                minxha_amyg_taus.append(best_tau)
+                
+            else:
+                
+                minxha_amyg_bad_taus.append(best_tau)
 
             minxha_amyg_all_means.append(y_m)
-
+            
             # plt.plot(x_m,y_m,'ro',label='original data')
-            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
+            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*all_pars[np.argmax(r2_test)]),label='fit (tau = %i)' %pars[1])
             # plt.xlabel('lag (ms)')
             # plt.ylabel('mean autocorrelation')
-            # plt.title('Human amygdala %i' %unit)
+            # plt.title('Minxha amygdala %i; r$^2$ = %.2f' %(unit,best_r2))
             # plt.legend()
             # plt.show()
 
+toc = time.perf_counter()
+
+#%% How long did this take to run
+
+print('Analyzed %i units in %.2f sec' %(len(spikes),toc-tic))
 
 #%% How many units got filtered?
 
@@ -252,28 +289,58 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-minxha_amyg_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],minxha_amyg_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+tau_test_mean = []
+r2_test_mean = []
+all_mean_pars = []
+
+for guess in range(200):
+    
+    a = random.uniform(0,20)
+    b = random.uniform(0,20)
+    tau = random.uniform(0,1000)
+    
+    try:
+        minxha_amyg_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],minxha_amyg_mean[first_neg_mean_diff:],p0=[a,tau,b],bounds=((0,np.inf)))
+        all_mean_pars.append(minxha_amyg_pars)
+        tau_test_mean.append(pars[1])
+        rrr = np.corrcoef(y_m,func(x_m[first_neg_diff:],*minxha_amyg_pars))
+        r2_test_mean.append(rrr[0,1]**2)
+
+    except RuntimeError:
+        print("Error - curve_fit failed")
+        
+best_r2_mean = np.max(r2_test_mean)
+best_tau_mean = tau_test[np.argmax(r2_test)]
 
 plt.plot(x_m,minxha_amyg_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*minxha_amyg_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*all_mean_pars[np.argmax(r2_test)]),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('mean autocorrelation')
-plt.title('Mean of all human amygdala units \n Minxha')
-plt.text(710,0.04,'tau = %i ms \n fr = %.2f hz \n n = %i' % (minxha_amyg_pars[1],minxha_amyg_mean_fr,len(minxha_amyg_taus)))
+plt.title('Mean of all human amygdala units \n Minxha r$^2$ = %.2f' %best_r2_mean)
+plt.text(710,0.04,'tau = %i ms \n fr = %.2f hz \n n = %i' % (best_tau_mean,minxha_amyg_mean_fr,len(minxha_amyg_taus)))
 plt.ylim((0,0.07))
 plt.show()
 
 #%% Add error bars
 
 plt.errorbar(x_m, minxha_amyg_mean, yerr=minxha_amyg_se, label='data +/- se')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*minxha_amyg_pars),label='fit curve')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*all_mean_pars[np.argmax(r2_test)]),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all human amygdala units \n Minxha')
+plt.title('Mean of all human amygdala units \n Minxha r$^2$ = %.2f' %best_r2_mean)
 plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (minxha_amyg_pars[1],minxha_amyg_mean_fr,len(minxha_amyg_taus)))
 plt.ylim((0,0.16))
+plt.show()
+
+#%% Histogram of r**2
+
+plt.hist(minxha_amyg_r2)
+plt.xlabel('R$^2$')
+plt.ylabel('count')
+plt.title('Minxha amygdala')
+plt.text(0.75,20,'n = %i \nn >0.5 = %i' %(len(minxha_amyg_r2),len(minxha_amyg_taus)))
 plt.show()
 
 #%% Histogram of taus
@@ -286,6 +353,7 @@ plt.ylabel('proportion')
 plt.xscale('log')
 plt.title('%i Human amygdala units \n Minxha' %len(minxha_amyg_taus))
 plt.show()
+
 #%% Correlation matrix
 
 minxha_amyg_mean_matrix = np.mean(minxha_amyg_correlation_matrices,axis=0)
