@@ -12,6 +12,8 @@ import numpy as np
 import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import warnings
+warnings.filterwarnings("ignore")
 
 #%% Load data
 
@@ -287,6 +289,7 @@ plt.show()
 bins = 10**np.arange(0,4,0.1)
 
 plt.hist(buzsaki_acc_taus,bins=bins, weights=np.zeros_like(buzsaki_acc_taus) + 1. / len(buzsaki_acc_taus))
+plt.axvline(buzsaki_acc_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')

@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import pandas as pd
+import warnings
+warnings.filterwarnings("ignore")
 
 #%% Labels
 
@@ -332,6 +334,7 @@ plt.show()
 bins = 10**np.arange(0,4,0.1)
 
 plt.hist(ofc_pre_taus,bins=bins, weights=np.zeros_like(ofc_pre_taus) + 1. / len(ofc_pre_taus))
+plt.axvline(ofc_pre_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
@@ -585,6 +588,7 @@ plt.show()
 bins = 10**np.arange(0,4,0.1)
 
 plt.hist(acc_pre_taus,bins=bins, weights=np.zeros_like(acc_pre_taus) + 1. / len(acc_pre_taus))
+plt.axvline(acc_pre_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
@@ -837,7 +841,8 @@ plt.show()
 
 bins = 10**np.arange(0,4,0.1)
 
-plt.hist(ofc_post_taus,bins=bins, weights=np.zeros_like(ofc_post_taus) + 1. / len(ofc_post_taus))
+plt.hist(ofc_post_taus,bins=bins, weights=np.zeros_like(ofc_post_taus) + 1. / len(ofc_post_taus)
+plt.axvline(ofc_post_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
@@ -1091,6 +1096,7 @@ plt.show()
 bins = 10**np.arange(0,4,0.1)
 
 plt.hist(acc_post_taus,bins=bins, weights=np.zeros_like(acc_post_taus) + 1. / len(acc_post_taus))
+plt.axvline(acc_post_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan  7 15:44:55 2021
+Created on Wed Feb  3 14:21:33 2021
 
 @author: zachz
 """
@@ -12,71 +12,55 @@ import numpy as np
 import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-import random
 import warnings
 warnings.filterwarnings("ignore")
 
-#%% Load in data (trying amygdala here)
+#%% Load data
 
-amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Faraut - Human MTL/faraut_amygdala.mat',simplify_cells=True)
+mpfc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/LeMerre - Rat mPFC/lemerre.mat',simplify_cells=True)
 
-spikes = amy['spikes'] / 10**6
+spikes = mpfc['spikes']
 
-#%% Choose a random start point and 1 sec after, estimate timescale from this
-  # Then repeat 250x per unit to simulate 250 trials
+#%% Begin working!
 
-  # Do it 100 times
+for lag in range(1,16):
 
-repeated_taus = []
+    lemerre_mpfc_all_means = []
+    lemerre_mpfc_taus = []
+    lemerre_mpfc_failed_fits = []
 
-for repeat in range(100):
+    lemerre_mpfc_failed_autocorr = []
+    lemerre_mpfc_no_spikes_in_a_bin = []
+    lemerre_mpfc_low_fr = []
 
-    print('now on repeat %i' %repeat)
-
-    faraut_amyg_all_means = []
-    faraut_amyg_taus = []
-    faraut_amyg_failed_fits = []
-
-    faraut_amyg_failed_autocorr = []
-    faraut_amyg_no_spikes_in_a_bin = []
-    faraut_amyg_low_fr = []
-
-    faraut_amyg_avg_fr = []
-    faraut_amyg_correlation_matrices = []
+    lemerre_mpfc_avg_fr = []
+    lemerre_mpfc_correlation_matrices = []
 
     for unit in range(len(spikes)):
 
+        print('fitting unit %i' %unit)
+
+        unit_spikes = spikes[unit]
+
+        # 0 align first spike to make binning easier, bin @ 50ms
+
+        unit_spikes = unit_spikes - np.min(unit_spikes)
+
+        bins = np.arange(0,np.max(unit_spikes),step=0.05)
+
+        binned_spikes, edges = np.histogram(unit_spikes,bins=bins)
+
+        # Every 3 seconds is a new "trial"
+
         binned_unit_spikes = []
 
-        for iteration in range(250):
+        for start_t in range(0,len(binned_spikes),20*lag):
 
-        # Get spikes from random interval of 1s
+            trial_spikes = binned_spikes[start_t:start_t+19]
 
-            this_unit = spikes[unit]
+            binned_unit_spikes.append(trial_spikes)
 
-            min_t = np.min(this_unit)
-            max_t = np.max(this_unit)
-
-            start_t = random.uniform(min_t,max_t)
-            end_t = start_t + 1
-
-            rand_spikes = []
-
-            for spike in range(len(this_unit)):
-
-                if start_t <= this_unit[spike] < end_t:
-
-                    rand_spikes.append(this_unit[spike])
-
-            # Bin spikes in 50ms bins
-
-            bins = np.linspace(start_t,end_t,20)
-
-            binned, bin_edges = np.histogram(rand_spikes,bins=bins)
-
-            binned_spikes = binned
-
-            binned_unit_spikes.append(binned_spikes)
+        binned_unit_spikes = binned_unit_spikes[:-1]
 
         binned_unit_spikes = np.vstack(binned_unit_spikes)
 
@@ -84,7 +68,7 @@ for repeat in range(100):
 
         summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
 
-        faraut_amyg_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+        lemerre_mpfc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
         #%% Do autocorrelation
 
@@ -101,15 +85,15 @@ for repeat in range(100):
 
         if np.isnan(one_autocorrelation).any() == True:
 
-            faraut_amyg_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+            lemerre_mpfc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
         elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))] == True:
 
-            faraut_amyg_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+            lemerre_mpfc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
 
         elif np.sum(summed_spikes_per_bin) < 1:
 
-            faraut_amyg_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+            lemerre_mpfc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
         else:
 
@@ -117,10 +101,10 @@ for repeat in range(100):
 
             correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
 
-            faraut_amyg_correlation_matrices.append(correlation_matrix)
+            lemerre_mpfc_correlation_matrices.append(correlation_matrix)
 
             # plt.imshow(correlation_matrix)
-            # plt.title('Human amygdala unit %i' %unit)
+            # plt.title('Rat mpfc unit %i' %unit)
             # plt.xlabel('lag')
             # plt.ylabel('lag')
             # plt.xticks(range(0,19))
@@ -182,7 +166,7 @@ for repeat in range(100):
             y_s = np.array(y_s)
 
             # plt.plot(x_s,y_s,'ro')
-            # plt.title('Human amygdala unit %i' %unit)
+            # plt.title('Rat mpfc unit %i' %unit)
             # plt.xlabel('lag (ms)')
             # plt.ylabel('autocorrelation')
             # plt.show()
@@ -234,41 +218,43 @@ for repeat in range(100):
 
             except RuntimeError:
                 print("Error - curve_fit failed")
-                faraut_amyg_failed_fits.append(unit)
+                lemerre_mpfc_failed_fits.append(unit)
 
-            faraut_amyg_taus.append(pars[1])
+            lemerre_mpfc_taus.append(pars[1])
 
-            faraut_amyg_all_means.append(y_m)
+            lemerre_mpfc_all_means.append(y_m)
 
             # plt.plot(x_m,y_m,'ro',label='original data')
             # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
             # plt.xlabel('lag (ms)')
             # plt.ylabel('mean autocorrelation')
-            # plt.title('Human amygdala %i' %unit)
+            # plt.title('Rat mpfc %i' %unit)
             # plt.legend()
             # plt.show()
 
     #%% How many units got filtered?
 
-    faraut_amyg_bad_units = len(faraut_amyg_failed_autocorr) + len(faraut_amyg_no_spikes_in_a_bin) + len(faraut_amyg_low_fr)
+    lemerre_mpfc_bad_units = len(lemerre_mpfc_failed_autocorr) + len(lemerre_mpfc_no_spikes_in_a_bin) + len(lemerre_mpfc_low_fr)
 
-    print('%i units were filtered out' %faraut_amyg_bad_units)
+    print('%i units were filtered out' %lemerre_mpfc_bad_units)
     print('out of %i total units' %len(spikes))
 
     #%% Take mean of all units
 
-    faraut_amyg_all_means = np.vstack(faraut_amyg_all_means)
+    lemerre_mpfc_all_means = np.vstack(lemerre_mpfc_all_means)
 
-    faraut_amyg_mean = np.mean(faraut_amyg_all_means,axis=0)
-    faraut_amyg_sd = np.std(faraut_amyg_all_means,axis=0)
-    faraut_amyg_se = faraut_amyg_sd/np.sqrt(len(faraut_amyg_mean))
+    lemerre_mpfc_mean = np.mean(lemerre_mpfc_all_means,axis=0)
+    lemerre_mpfc_sd = np.std(lemerre_mpfc_all_means,axis=0)
+    lemerre_mpfc_se = lemerre_mpfc_sd/np.sqrt(len(lemerre_mpfc_mean))
+
+    lemerre_mpfc_mean_fr = np.mean(lemerre_mpfc_avg_fr)
 
     def func(x,a,tau,b):
         return a*((np.exp(-x/tau))+b)
 
-    neg_mean_diffs = []
+    mean_diff = np.diff(lemerre_mpfc_mean)
 
-    mean_diff = np.diff(faraut_amyg_mean)
+    neg_mean_diffs = []
 
     for diff in range(len(mean_diff)):
 
@@ -278,46 +264,52 @@ for repeat in range(100):
 
     first_neg_mean_diff = np.min(neg_mean_diffs)
 
-    faraut_amyg_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],faraut_amyg_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+    lemerre_mpfc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],lemerre_mpfc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-    repeated_taus.append(faraut_amyg_pars[1])
-
-    # plt.plot(x_m,faraut_amyg_mean,label='original data')
-    # plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*faraut_amyg_pars),label='fit curve')
+    # plt.plot(x_m,lemerre_mpfc_mean,label='original data')
+    # plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*lemerre_mpfc_pars),label='fit curve')
     # plt.legend(loc='upper right')
     # plt.xlabel('lag (ms)')
-    # plt.ylabel('mean autocorrelation')
-    # plt.title('Mean of all human amygdala units \n Faraut (simulated trials)')
-    # plt.text(710,0.11,'tau = %i' %faraut_amyg_pars[1])
+    # plt.ylabel('autocorrelation')
+    # plt.title('Mean of all rat mpfc units \n LeMerre')
+    # plt.text(710,0.075,'tau = %i ms \n fr = %.2f hz \n n = %i' % (lemerre_mpfc_pars[1],lemerre_mpfc_mean_fr,len(lemerre_mpfc_taus)))
     # plt.show()
+
+
+    #%% Add error bars
+
+    plt.errorbar(x_m, lemerre_mpfc_mean, yerr=lemerre_mpfc_se, label='data +/- se')
+    plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*lemerre_mpfc_pars),label='fit curve')
+    plt.legend(loc='upper right')
+    plt.xlabel('lag (ms)')
+    plt.ylabel('autocorrelation')
+    plt.title('Mean of all rat mPFC units \n LeMerre, lag = %i' %lag)
+    plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (lemerre_mpfc_pars[1],lemerre_mpfc_mean_fr,len(lemerre_mpfc_taus)))
+    plt.ylim((0,0.16))
+    plt.show()
 
     #%% Histogram of taus
 
-    # plt.hist(np.log(faraut_amyg_taus))
-    # plt.axvline(faraut_amyg_pars[1],color='r',linestyle='dashed',linewidth=1)
-    # plt.xlabel('log(tau)')
-    # plt.ylabel('count')
-    # plt.title('%i human amygdala units \n Faraut (simulated trials)' %len(faraut_amyg_taus))
-    # plt.show()
+    bins = 10**np.arange(0,4,0.1)
+
+    plt.hist(lemerre_mpfc_taus,bins=bins, weights=np.zeros_like(lemerre_mpfc_taus) + 1. / len(lemerre_mpfc_taus))
+    plt.axvline(lemerre_mpfc_pars[1],color='r',linestyle='dashed',linewidth=1)
+    plt.xlabel('tau (ms)')
+    plt.ylabel('proportion')
+    plt.xscale('log')
+    plt.title('%i Rat mPFC units \n LeMerre, lag = %i' %(len(lemerre_mpfc_taus),lag))
+    plt.show()
 
     #%% Correlation matrix
 
-    # faraut_amyg_mean_matrix = np.mean(faraut_amyg_correlation_matrices,axis=0)
+    # lemerre_mpfc_mean_matrix = np.mean(lemerre_mpfc_correlation_matrices,axis=0)
 
-    # plt.imshow(faraut_amyg_mean_matrix)
+    # plt.imshow(lemerre_mpfc_mean_matrix)
     # plt.tight_layout()
-    # plt.title('Faraut Amygdala \n  (simulated trials)')
+    # plt.title('LeMerre Rat mpfc')
     # plt.xlabel('lag (ms)')
     # plt.ylabel('lag (ms)')
     # plt.xticks(range(0,20,2),range(0,1000,100))
     # plt.yticks(range(0,20,2),range(0,1000,100))
     # plt.colorbar()
     # plt.show()
-
-#%% Distribution of simulated taus
-
-plt.hist(np.log(repeated_taus))
-plt.xlabel('log(tau)')
-plt.ylabel('count')
-plt.title('100 repeats of 250 simulated trials per unit')
-plt.show()

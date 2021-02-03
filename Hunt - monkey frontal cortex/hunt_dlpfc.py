@@ -12,6 +12,8 @@ import numpy as np
 import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import warnings
+warnings.filterwarnings("ignore")
 
 #%% Load in data
 
@@ -277,6 +279,7 @@ plt.show()
 #%% Histogram of taus
 
 plt.hist(np.log(hunt_dlpfc_taus))
+plt.axvline(hunt_dlpfc_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('log(tau)')
 plt.ylabel('count')
 plt.title('%i monkey dlpfc units \n Hunt' %len(hunt_dlpfc_taus))

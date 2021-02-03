@@ -208,41 +208,41 @@ for unit in range(len(spikes)):
 
             def func(x,a,tau,b):
                 return a*((np.exp(-x/tau))+b)
-            
+
             tau_test = []
             r2_test = []
             all_pars = []
-            
+
             for guess in range(200):
-                
+
                 a = random.uniform(0,20)
                 b = random.uniform(0,20)
                 tau = random.uniform(0,1000)
-                
+
                 try:
                     pars,cov = curve_fit(func,x_m[first_neg_diff:],y_m[first_neg_diff:],p0=[a,tau,b],bounds=((0,1000)),maxfev=5000)
                     all_pars.append(pars)
                     tau_test.append(pars[1])
                     rrr = np.corrcoef(y_m,func(x_m[first_neg_diff:],*pars))
                     r2_test.append(rrr[0,1]**2)
-    
+
                 except RuntimeError:
                     print("Error - curve_fit failed")
-                    
+
             best_r2 = np.max(r2_test)
             minxha_amyg_r2.append(best_r2)
             best_tau = tau_test[np.argmax(r2_test)]
-            
+
             if best_r2 >= 0.3:
-                
+
                 minxha_amyg_taus.append(best_tau)
-                
+
             else:
-                
+
                 minxha_amyg_bad_taus.append(best_tau)
 
             minxha_amyg_all_means.append(y_m)
-            
+
             # plt.plot(x_m,y_m,'ro',label='original data')
             # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*all_pars[np.argmax(r2_test)]),label='fit (tau = %i)' %pars[1])
             # plt.xlabel('lag (ms)')
@@ -294,11 +294,11 @@ r2_test_mean = []
 all_mean_pars = []
 
 for guess in range(200):
-    
+
     a = random.uniform(0,20)
     b = random.uniform(0,20)
     tau = random.uniform(0,1000)
-    
+
     try:
         minxha_amyg_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],minxha_amyg_mean[first_neg_mean_diff:],p0=[a,tau,b],bounds=((0,np.inf)))
         all_mean_pars.append(minxha_amyg_pars)
@@ -308,7 +308,7 @@ for guess in range(200):
 
     except RuntimeError:
         print("Error - curve_fit failed")
-        
+
 best_r2_mean = np.max(r2_test_mean)
 best_tau_mean = tau_test[np.argmax(r2_test)]
 
@@ -348,6 +348,7 @@ plt.show()
 bins = 10**np.arange(0,4,0.1)
 
 plt.hist(minxha_amyg_taus,bins=bins, weights=np.zeros_like(minxha_amyg_taus) + 1. / len(minxha_amyg_taus))
+plt.axvline(minxha_amyg_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')

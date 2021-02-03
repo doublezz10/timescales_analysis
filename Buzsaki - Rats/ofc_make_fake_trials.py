@@ -14,6 +14,8 @@ import numpy as np
 import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import warnings
+warnings.filterwarnings("ignore")
 
 #%% Load data
 
@@ -289,7 +291,7 @@ plt.show()
 bins = 10**np.arange(0,4,0.1)
 
 plt.hist(buzsaki_ofc_taus,bins=bins, weights=np.zeros_like(buzsaki_ofc_taus) + 1. / len(buzsaki_ofc_taus))
-plt.xlabel('tau (ms)')
+plt.axvline(buzsaki_ofc_pars[1],color='r',linestyle='dashed',linewidth=1)plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
 plt.title('%i Rat OFC units \n Buzsaki' %len(buzsaki_ofc_taus))

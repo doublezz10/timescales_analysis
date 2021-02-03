@@ -10,9 +10,10 @@ Created on Fri Nov 13 16:11:18 2020
 
 import numpy as np
 import scipy.io as spio
-
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import warnings
+warnings.filterwarnings("ignore")
 
 #%% Load in data
 
@@ -281,6 +282,7 @@ plt.show()
 bins = 10**np.arange(0,4,0.1)
 
 plt.hist(meg_amyg_taus,bins=bins, weights=np.zeros_like(meg_amyg_taus) + 1. / len(meg_amyg_taus))
+plt.axvline(meg_amyg_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
