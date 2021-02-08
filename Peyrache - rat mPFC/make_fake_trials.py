@@ -291,7 +291,7 @@ for lag in range(1,16):
     plt.ylabel('autocorrelation')
     plt.title('Mean of all rat mPFC units \n Peyrache, lag = %i' %lag)
     plt.text(710,0.12,'tau = %i ms \n fr = %.2f hz \n n = %i' % (peyrache_mpfc_pars[1],peyrache_mpfc_mean_fr,len(peyrache_mpfc_taus)))
-    plt.ylim((0,0.16))
+    plt.ylim((0,0.19))
     plt.show()
     
     #%% Histogram of taus

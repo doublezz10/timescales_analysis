@@ -23,6 +23,11 @@ dacc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Min
 
 spikes = dacc['spikes']
 
+try:
+   cell_info = dacc['cell_info']
+except NameError:
+   pass
+
 minxha_dacc_all_means = []
 minxha_dacc_taus = []
 minxha_dacc_failed_fits = []

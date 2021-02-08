@@ -15,6 +15,8 @@ from scipy.optimize import curve_fit
 import warnings
 warnings.filterwarnings("ignore")
 
+
+
 #%% Load in data
 
 amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Faraut - Human MTL/faraut_amygdala.mat',simplify_cells=True)
@@ -22,6 +24,11 @@ amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Fara
 #%% Extract spiking data from one brain area
 
 spikes = amy['spikes']
+
+try:
+   cell_info = amy['cell_info']
+except NameError:
+   pass
 
 faraut_amyg_all_means = []
 faraut_amyg_taus = []

@@ -23,6 +23,11 @@ bla = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Stei
 
 spikes = bla['bla_task_by_trial']
 
+try:
+   cell_info = bla['cell_info']
+except NameError:
+   pass
+
 steinmetz_bla_all_means = []
 steinmetz_bla_taus = []
 steinmetz_bla_failed_fits = []

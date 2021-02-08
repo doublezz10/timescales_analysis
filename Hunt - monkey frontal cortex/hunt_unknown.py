@@ -23,6 +23,11 @@ unknown = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/
 
 spikes = unknown['fixation']
 
+try:
+   cell_info = unknown['cell_info']
+except NameError:
+   pass
+
 hunt_unknown_all_means = []
 hunt_unknown_taus = []
 hunt_unknown_failed_fits = []

@@ -27,6 +27,11 @@ amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minx
 
 spikes = amy['spikes']
 
+try:
+   cell_info = amy['cell_info']
+except NameError:
+   pass
+
 minxha_amyg_all_means = []
 minxha_amyg_taus = []
 minxha_amyg_bad_taus = []

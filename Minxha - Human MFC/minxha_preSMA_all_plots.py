@@ -24,6 +24,11 @@ presma = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/M
 
 spikes = presma['spikes']
 
+try:
+   cell_info = presma['cell_info']
+except NameError:
+   pass
+
 minxha_presma_all_means = []
 minxha_presma_taus = []
 

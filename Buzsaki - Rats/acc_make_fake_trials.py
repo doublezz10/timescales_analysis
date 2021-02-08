@@ -21,6 +21,11 @@ acc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes on
 
 spikes = acc['spikes']
 
+try:
+   cell_info = acc['cell_info']
+except NameError:
+   pass
+
 #%% Begin working!
 
 buzsaki_acc_all_means = []

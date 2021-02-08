@@ -23,6 +23,11 @@ vmpfc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Hu
 
 spikes = vmpfc['fixation']
 
+try:
+   cell_info = vmpfc['cell_info']
+except NameError:
+   pass
+
 hunt_vmpfc_all_means = []
 hunt_vmpfc_taus = []
 hunt_vmpfc_failed_fits = []

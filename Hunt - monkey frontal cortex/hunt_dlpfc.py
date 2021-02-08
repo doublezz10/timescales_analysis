@@ -23,6 +23,11 @@ dlpfc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Hu
 
 spikes = dlpfc['fixation']
 
+try:
+   cell_info = dlpfc['cell_info']
+except NameError:
+   pass
+
 hunt_dlpfc_all_means = []
 hunt_dlpfc_taus = []
 hunt_dlpfc_failed_fits = []

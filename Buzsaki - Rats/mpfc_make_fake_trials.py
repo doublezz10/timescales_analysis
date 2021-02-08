@@ -21,6 +21,11 @@ mpfc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes o
 
 spikes = mpfc['spikes']
 
+try:
+   cell_info = acc['cell_info']
+except NameError:
+   pass
+
 #%% Begin working!
 
 buzsaki_mpfc_all_means = []

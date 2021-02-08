@@ -23,6 +23,11 @@ acc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Hunt
 
 spikes = acc['fixation']
 
+try:
+   cell_info = acc['cell_info']
+except NameError:
+   pass
+
 hunt_acc_all_means = []
 hunt_acc_taus = []
 hunt_acc_failed_fits = []

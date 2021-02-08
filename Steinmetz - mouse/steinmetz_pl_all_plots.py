@@ -23,6 +23,11 @@ pl = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Stein
 
 spikes = pl['pl_task_by_trial']
 
+try:
+   cell_info = pl['cell_info']
+except NameError:
+   pass
+
 steinmetz_pl_all_means = []
 steinmetz_pl_taus = []
 steinmetz_pl_failed_fits = []

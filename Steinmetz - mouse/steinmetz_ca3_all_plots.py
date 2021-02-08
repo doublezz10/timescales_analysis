@@ -23,6 +23,11 @@ ca3 = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Stei
 
 spikes = ca3['ca3_task_by_trial']
 
+try:
+   cell_info = ca3['cell_info']
+except NameError:
+   pass
+
 steinmetz_ca3_all_means = []
 steinmetz_ca3_taus = []
 steinmetz_ca3_failed_fits = []

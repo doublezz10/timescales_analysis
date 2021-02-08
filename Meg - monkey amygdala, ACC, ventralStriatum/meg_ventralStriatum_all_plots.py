@@ -23,6 +23,11 @@ vs = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Meg -
 
 spikes = vs['spikes']/1000
 
+try:
+   cell_info = vs['cell_info']
+except NameError:
+   pass
+
 meg_vs_all_means = []
 meg_vs_taus = []
 meg_vs_failed_fits = []

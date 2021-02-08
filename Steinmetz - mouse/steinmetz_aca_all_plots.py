@@ -23,6 +23,11 @@ aca = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Stei
 
 spikes = aca['aca_task_by_trial']
 
+try:
+   cell_info = aca['cell_info']
+except NameError:
+   pass
+
 steinmetz_aca_all_means = []
 steinmetz_aca_taus = []
 steinmetz_aca_failed_fits = []

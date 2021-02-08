@@ -21,6 +21,11 @@ mpfc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes o
 
 spikes = mpfc['spikes']
 
+try:
+   cell_info = mpfc['cell_info']
+except NameError:
+   pass
+
 #%% Begin working!
 
 for lag in range(1,16):

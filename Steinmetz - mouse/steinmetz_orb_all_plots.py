@@ -23,6 +23,11 @@ orb = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Stei
 
 spikes = orb['orb_task_by_trial']
 
+try:
+   cell_info = orb['cell_info']
+except NameError:
+   pass
+
 steinmetz_orb_all_means = []
 steinmetz_orb_taus = []
 steinmetz_orb_failed_fits = []

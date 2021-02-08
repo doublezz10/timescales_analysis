@@ -23,6 +23,11 @@ amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Meg 
 
 spikes = amy['spikes']/1000
 
+try:
+   cell_info = amy['cell_info']
+except NameError:
+   pass
+
 meg_amyg_all_means = []
 meg_amyg_taus = []
 meg_amyg_failed_fits = []

@@ -23,6 +23,11 @@ hc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Farau
 
 spikes = hc['spikes']
 
+try:
+   cell_info = hc['cell_info']
+except NameError:
+   pass
+
 faraut_hc_all_means = []
 faraut_hc_taus = []
 

@@ -21,6 +21,11 @@ ofc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes on
 
 spikes = ofc['spikes']
 
+try:
+   cell_info = acc['cell_info']
+except NameError:
+   pass
+
 #%% Begin working!
 
 feierstein_ofc_all_means = []

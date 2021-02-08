@@ -23,6 +23,11 @@ ofc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Hunt
 
 spikes = ofc['fixation']
 
+try:
+   cell_info = ofc['cell_info']
+except NameError:
+   pass
+
 hunt_ofc_all_means = []
 hunt_ofc_taus = []
 hunt_ofc_failed_fits = []

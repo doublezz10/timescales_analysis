@@ -22,6 +22,11 @@ amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes on
 
 spikes = amy['spikes'] / 10**6
 
+try:
+   cell_info = acc['cell_info']
+except NameError:
+   pass
+
 #%% Choose a random start point and 1 sec after, estimate timescale from this
   # Then repeat 250x per unit to simulate 250 trials
 

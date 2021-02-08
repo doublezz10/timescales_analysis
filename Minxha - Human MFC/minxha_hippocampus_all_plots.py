@@ -23,6 +23,11 @@ hc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/By trial/Minxh
 
 spikes = hc['spikes']
 
+try:
+   cell_info = hc['cell_info']
+except NameError:
+   pass
+
 minxha_hc_all_means = []
 minxha_hc_taus = []
 
