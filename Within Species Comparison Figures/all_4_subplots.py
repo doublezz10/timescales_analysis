@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 #%% Start plotting
 
-fig, axs = plt.subplots(2,2)
+fig, axs = plt.subplots(2,2,figsize=(12,8))
 
 ax0 = axs[0,0].twinx()  # set up the 2nd axis
 ax1 = axs[0,1].twinx()

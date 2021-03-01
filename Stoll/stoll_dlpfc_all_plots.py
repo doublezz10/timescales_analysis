@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan 22 11:57:58 2021
+Created on Tue Feb 16 17:11:07 2021
 
 @author: zachz
 """
@@ -13,31 +13,35 @@ import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import warnings
+import csv
 warnings.filterwarnings("ignore")
 
 #%% Load data
 
-ofc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Kepecs - rat OFC 2/kepecs_rat_ofc.mat',simplify_cells=True)
+dlpfc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Stoll - monkey1/stoll_dlPFC.mat',simplify_cells=True)
 
-spikes = ofc['spikes']
+spikes = dlpfc['spikes']
 
 try:
-   cell_info = ofc['cell_info']
-except NameError:
+   cell_info = dlpfc['cell_info']
+except KeyError:
    pass
 
 #%% Begin working!
 
-kepecs_ofc_all_means = []
-kepecs_ofc_taus = []
-kepecs_ofc_failed_fits = []
+all_data_stoll_dlpfc = []
 
-kepecs_ofc_failed_autocorr = []
-kepecs_ofc_no_spikes_in_a_bin = []
-kepecs_ofc_low_fr = []
+stoll_dlpfc_all_means = []
+stoll_dlpfc_taus = []
+stoll_dlpfc_failed_fits = []
 
-kepecs_ofc_avg_fr = []
-kepecs_ofc_correlation_matrices = []
+stoll_dlpfc_failed_autocorr = []
+stoll_dlpfc_no_spikes_in_a_bin = []
+stoll_dlpfc_low_fr = []
+
+stoll_dlpfc_avg_fr = []
+stoll_dlpfc_correlation_matrices = []
+stoll_dlpfc_r2s = []
 
 for unit in range(len(spikes)):
 
@@ -51,13 +55,11 @@ for unit in range(len(spikes)):
 
     binned_spikes, edges = np.histogram(unit_spikes,bins=bins)
 
-    # Every x seconds is a new "trial"
-
-    x = 3
+    # Every 3 seconds is a new "trial"
 
     binned_unit_spikes = []
 
-    for start_t in range(0,len(binned_spikes),20 * x):
+    for start_t in range(0,len(binned_spikes),20*3):
 
         trial_spikes = binned_spikes[start_t:start_t+19]
 
@@ -70,8 +72,6 @@ for unit in range(len(spikes)):
     [trials,bins] = binned_unit_spikes.shape
 
     summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
-
-    kepecs_ofc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
     #%% Do autocorrelation
 
@@ -88,15 +88,15 @@ for unit in range(len(spikes)):
 
     if np.isnan(one_autocorrelation).any() == True:
 
-        kepecs_ofc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+        stoll_dlpfc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
     elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))] == True:
 
-        kepecs_ofc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+        stoll_dlpfc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
 
     elif np.sum(summed_spikes_per_bin) < 1:
 
-        kepecs_ofc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+        stoll_dlpfc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
     else:
 
@@ -104,10 +104,10 @@ for unit in range(len(spikes)):
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
 
-        kepecs_ofc_correlation_matrices.append(correlation_matrix)
+        stoll_dlpfc_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
-        # plt.title('Rat OFC unit %i' %unit)
+        # plt.title('Rat acc unit %i' %unit)
         # plt.xlabel('lag')
         # plt.ylabel('lag')
         # plt.xticks(range(0,19))
@@ -169,7 +169,7 @@ for unit in range(len(spikes)):
         y_s = np.array(y_s)
 
         # plt.plot(x_s,y_s,'ro')
-        # plt.title('Rat OFC unit %i' %unit)
+        # plt.title('Rat acc unit %i' %unit)
         # plt.xlabel('lag (ms)')
         # plt.ylabel('autocorrelation')
         # plt.show()
@@ -221,41 +221,54 @@ for unit in range(len(spikes)):
 
         except RuntimeError:
             print("Error - curve_fit failed")
-            kepecs_ofc_failed_fits.append(unit)
+            stoll_dlpfc_failed_fits.append(unit)
 
-        kepecs_ofc_taus.append(pars[1])
+        r2 = (np.corrcoef(y_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars)))[0,1]**2
+        stoll_dlpfc_r2s.append(r2)
 
-        kepecs_ofc_all_means.append(y_m)
+        stoll_dlpfc_taus.append(pars[1])
+        stoll_dlpfc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+
+        stoll_dlpfc_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro',label='original data')
         # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
-        # plt.title('Rat OFC %i' %unit)
+        # plt.title('Monkey dlPFC %i' %unit)
         # plt.legend()
         # plt.show()
+        
+        #%% Add data to 'all_data'
+        
+        all_data_stoll_dlpfc.append(('stoll','monkey','dlPFC',unit,pars[1],np.sum(summed_spikes_per_bin)/trials,r2,pars[0],pars[2]))
 
+with open('/Users/zachz/Documents/timescales_analysis/results.csv','a') as out:
+    csv_out=csv.writer(out)
+    for row in all_data_stoll_dlpfc:
+        csv_out.writerow(row)
+        
 #%% How many units got filtered?
 
-kepecs_ofc_bad_units = len(kepecs_ofc_failed_autocorr) + len(kepecs_ofc_no_spikes_in_a_bin) + len(kepecs_ofc_low_fr)
+stoll_dlpfc_bad_units = len(stoll_dlpfc_failed_autocorr) + len(stoll_dlpfc_no_spikes_in_a_bin) + len(stoll_dlpfc_low_fr)
 
-print('%i units were filtered out' %kepecs_ofc_bad_units)
+print('%i units were filtered out' %stoll_dlpfc_bad_units)
 print('out of %i total units' %len(spikes))
 
 #%% Take mean of all units
 
-kepecs_ofc_all_means = np.vstack(kepecs_ofc_all_means)
+stoll_dlpfc_all_means = np.vstack(stoll_dlpfc_all_means)
 
-kepecs_ofc_mean = np.mean(kepecs_ofc_all_means,axis=0)
-kepecs_ofc_sd = np.std(kepecs_ofc_all_means,axis=0)
-kepecs_ofc_se = kepecs_ofc_sd/np.sqrt(len(kepecs_ofc_mean))
+stoll_dlpfc_mean = np.mean(stoll_dlpfc_all_means,axis=0)
+stoll_dlpfc_sd = np.std(stoll_dlpfc_all_means,axis=0)
+stoll_dlpfc_se = stoll_dlpfc_sd/np.sqrt(len(stoll_dlpfc_mean))
 
-kepecs_ofc_mean_fr = np.mean(kepecs_ofc_avg_fr)
+stoll_dlpfc_mean_fr = np.mean(stoll_dlpfc_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(kepecs_ofc_mean)
+mean_diff = np.diff(stoll_dlpfc_mean)
 
 neg_mean_diffs = []
 
@@ -267,49 +280,50 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-kepecs_ofc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],kepecs_ofc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+stoll_dlpfc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],stoll_dlpfc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,kepecs_ofc_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*kepecs_ofc_pars),label='fit curve')
+plt.plot(x_m,stoll_dlpfc_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*stoll_dlpfc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat OFC units \n Kepecs')
-plt.text(710,0.025,'tau = %i ms \n fr = %.2f hz \n n = %i' % (kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
+plt.title('Mean of all monkey dlPFC units \n Stoll')
+plt.text(710,0.075,'tau = %i ms \n fr = %.2f hz \n n = %i' % (stoll_dlpfc_pars[1],stoll_dlpfc_mean_fr,len(stoll_dlpfc_taus)))
 plt.show()
 
-a_kepecs = (('kepecs','ofc',kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
+a_population_stoll_dlpfc = (('stoll','dlPFC',stoll_dlpfc_pars[1],stoll_dlpfc_mean_fr,len(stoll_dlpfc_taus)))
 
 #%% Add error bars
 
-plt.errorbar(x_m, kepecs_ofc_mean, yerr=kepecs_ofc_se, label='data +/- se')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*kepecs_ofc_pars),label='fit curve')
+plt.errorbar(x_m, stoll_dlpfc_mean, yerr=stoll_dlpfc_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*stoll_dlpfc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat OFC units \n Kepecs')
-plt.text(710,0.015,'tau = %i ms \n fr = %.2f hz \n n = %i' % (kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
+plt.title('Mean of all monkey dlPFC units \n Stoll')
+plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (stoll_dlpfc_pars[1],stoll_dlpfc_mean_fr,len(stoll_dlpfc_taus)))
+plt.ylim((0,0.16))
 plt.show()
 
 #%% Histogram of taus
 
 bins = 10**np.arange(0,4,0.1)
 
-plt.hist(kepecs_ofc_taus,bins=bins, weights=np.zeros_like(kepecs_ofc_taus) + 1. / len(kepecs_ofc_taus))
-plt.axvline(kepecs_ofc_pars[1],color='r',linestyle='dashed',linewidth=1)
+plt.hist(stoll_dlpfc_taus,bins=bins, weights=np.zeros_like(stoll_dlpfc_taus) + 1. / len(stoll_dlpfc_taus))
+plt.axvline(stoll_dlpfc_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
-plt.title('%i Rat OFC units \n Buzsaki' %len(kepecs_ofc_taus))
+plt.title('%i monkey dlPFC units \n Stoll' %len(stoll_dlpfc_taus))
 plt.show()
 
 #%% Correlation matrix
 
-kepecs_ofc_mean_matrix = np.mean(kepecs_ofc_correlation_matrices,axis=0)
+stoll_dlpfc_mean_matrix = np.mean(stoll_dlpfc_correlation_matrices,axis=0)
 
-plt.imshow(kepecs_ofc_mean_matrix)
+plt.imshow(stoll_dlpfc_mean_matrix)
 plt.tight_layout()
-plt.title('Kepecs Rat OFC')
+plt.title('Stoll monkey dlPFC')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
 plt.xticks(range(0,20,2),range(0,1000,100))

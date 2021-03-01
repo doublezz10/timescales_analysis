@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan 22 11:57:58 2021
+Created on Mon Feb  8 15:44:55 2021
 
 @author: zachz
 """
@@ -17,29 +17,35 @@ warnings.filterwarnings("ignore")
 
 #%% Load data
 
-ofc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Kepecs - rat OFC 2/kepecs_rat_ofc.mat',simplify_cells=True)
+mpfc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/LeMerre - Rat mPFC/lemerre.mat',simplify_cells=True)
 
-spikes = ofc['spikes']
+spikes = mpfc['spikes']
 
 try:
-   cell_info = ofc['cell_info']
+   cell_info = mpfc['cell_info']
 except NameError:
    pass
 
 #%% Begin working!
 
-kepecs_ofc_all_means = []
-kepecs_ofc_taus = []
-kepecs_ofc_failed_fits = []
+lemerre_mpfc_all_means = []
+lemerre_mpfc_taus = []
+lemerre_mpfc_failed_fits = []
 
-kepecs_ofc_failed_autocorr = []
-kepecs_ofc_no_spikes_in_a_bin = []
-kepecs_ofc_low_fr = []
+lemerre_mpfc_failed_autocorr = []
+lemerre_mpfc_no_spikes_in_a_bin = []
+lemerre_mpfc_low_fr = []
 
-kepecs_ofc_avg_fr = []
-kepecs_ofc_correlation_matrices = []
+lemerre_mpfc_avg_fr = []
+lemerre_mpfc_correlation_matrices = []
+
+lemerre_mpfc_coords = []
+
+print ('%i units to be fit' %len(spikes))
 
 for unit in range(len(spikes)):
+
+    print('fitting unit %i...' %unit)
 
     unit_spikes = spikes[unit]
 
@@ -51,13 +57,11 @@ for unit in range(len(spikes)):
 
     binned_spikes, edges = np.histogram(unit_spikes,bins=bins)
 
-    # Every x seconds is a new "trial"
-
-    x = 3
+    # Every 3 seconds is a new "trial"
 
     binned_unit_spikes = []
 
-    for start_t in range(0,len(binned_spikes),20 * x):
+    for start_t in range(0,len(binned_spikes),20*3):
 
         trial_spikes = binned_spikes[start_t:start_t+19]
 
@@ -71,7 +75,7 @@ for unit in range(len(spikes)):
 
     summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
 
-    kepecs_ofc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
+    lemerre_mpfc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
     #%% Do autocorrelation
 
@@ -88,15 +92,15 @@ for unit in range(len(spikes)):
 
     if np.isnan(one_autocorrelation).any() == True:
 
-        kepecs_ofc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+        lemerre_mpfc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
     elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))] == True:
 
-        kepecs_ofc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+        lemerre_mpfc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
 
     elif np.sum(summed_spikes_per_bin) < 1:
 
-        kepecs_ofc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+        lemerre_mpfc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
     else:
 
@@ -104,10 +108,10 @@ for unit in range(len(spikes)):
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
 
-        kepecs_ofc_correlation_matrices.append(correlation_matrix)
+        lemerre_mpfc_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
-        # plt.title('Rat OFC unit %i' %unit)
+        # plt.title('Rat mpfc unit %i' %unit)
         # plt.xlabel('lag')
         # plt.ylabel('lag')
         # plt.xticks(range(0,19))
@@ -169,7 +173,7 @@ for unit in range(len(spikes)):
         y_s = np.array(y_s)
 
         # plt.plot(x_s,y_s,'ro')
-        # plt.title('Rat OFC unit %i' %unit)
+        # plt.title('Rat mpfc unit %i' %unit)
         # plt.xlabel('lag (ms)')
         # plt.ylabel('autocorrelation')
         # plt.show()
@@ -221,41 +225,47 @@ for unit in range(len(spikes)):
 
         except RuntimeError:
             print("Error - curve_fit failed")
-            kepecs_ofc_failed_fits.append(unit)
+            lemerre_mpfc_failed_fits.append(unit)
 
-        kepecs_ofc_taus.append(pars[1])
+        lemerre_mpfc_taus.append(pars[1])
 
-        kepecs_ofc_all_means.append(y_m)
+        lemerre_mpfc_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro',label='original data')
         # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
-        # plt.title('Rat OFC %i' %unit)
+        # plt.title('Rat mpfc %i' %unit)
         # plt.legend()
         # plt.show()
+        
+        #%% pull coordinates
+        
+        unit_coords = cell_info[unit]['coords_ML_AP_depth']
+        
+        lemerre_mpfc_coords.append(unit_coords)
 
 #%% How many units got filtered?
 
-kepecs_ofc_bad_units = len(kepecs_ofc_failed_autocorr) + len(kepecs_ofc_no_spikes_in_a_bin) + len(kepecs_ofc_low_fr)
+lemerre_mpfc_bad_units = len(lemerre_mpfc_failed_autocorr) + len(lemerre_mpfc_no_spikes_in_a_bin) + len(lemerre_mpfc_low_fr)
 
-print('%i units were filtered out' %kepecs_ofc_bad_units)
+print('%i units were filtered out' %lemerre_mpfc_bad_units)
 print('out of %i total units' %len(spikes))
 
 #%% Take mean of all units
 
-kepecs_ofc_all_means = np.vstack(kepecs_ofc_all_means)
+lemerre_mpfc_all_means = np.vstack(lemerre_mpfc_all_means)
 
-kepecs_ofc_mean = np.mean(kepecs_ofc_all_means,axis=0)
-kepecs_ofc_sd = np.std(kepecs_ofc_all_means,axis=0)
-kepecs_ofc_se = kepecs_ofc_sd/np.sqrt(len(kepecs_ofc_mean))
+lemerre_mpfc_mean = np.mean(lemerre_mpfc_all_means,axis=0)
+lemerre_mpfc_sd = np.std(lemerre_mpfc_all_means,axis=0)
+lemerre_mpfc_se = lemerre_mpfc_sd/np.sqrt(len(lemerre_mpfc_mean))
 
-kepecs_ofc_mean_fr = np.mean(kepecs_ofc_avg_fr)
+lemerre_mpfc_mean_fr = np.mean(lemerre_mpfc_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(kepecs_ofc_mean)
+mean_diff = np.diff(lemerre_mpfc_mean)
 
 neg_mean_diffs = []
 
@@ -267,52 +277,71 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-kepecs_ofc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],kepecs_ofc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+lemerre_mpfc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],lemerre_mpfc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,kepecs_ofc_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*kepecs_ofc_pars),label='fit curve')
-plt.legend(loc='upper right')
-plt.xlabel('lag (ms)')
-plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat OFC units \n Kepecs')
-plt.text(710,0.025,'tau = %i ms \n fr = %.2f hz \n n = %i' % (kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
-plt.show()
+# plt.plot(x_m,lemerre_mpfc_mean,label='original data')
+# plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*lemerre_mpfc_pars),label='fit curve')
+# plt.legend(loc='upper right')
+# plt.xlabel('lag (ms)')
+# plt.ylabel('autocorrelation')
+# plt.title('Mean of all rat mpfc units \n LeMerre')
+# plt.text(710,0.075,'tau = %i ms \n fr = %.2f hz \n n = %i' % (lemerre_mpfc_pars[1],lemerre_mpfc_mean_fr,len(lemerre_mpfc_taus)))
+# plt.show()
 
-a_kepecs = (('kepecs','ofc',kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
 
 #%% Add error bars
 
-plt.errorbar(x_m, kepecs_ofc_mean, yerr=kepecs_ofc_se, label='data +/- se')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*kepecs_ofc_pars),label='fit curve')
+plt.errorbar(x_m, lemerre_mpfc_mean, yerr=lemerre_mpfc_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*lemerre_mpfc_pars),label='fit curve')
 plt.legend(loc='upper right')
-plt.xlabel('lag (ms)')
+plt.xlabel('3 (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat OFC units \n Kepecs')
-plt.text(710,0.015,'tau = %i ms \n fr = %.2f hz \n n = %i' % (kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
+plt.title('Mean of all rat mPFC units \n LeMerre, lag = 3')
+plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (lemerre_mpfc_pars[1],lemerre_mpfc_mean_fr,len(lemerre_mpfc_taus)))
+plt.ylim((0,0.16))
 plt.show()
 
 #%% Histogram of taus
 
 bins = 10**np.arange(0,4,0.1)
 
-plt.hist(kepecs_ofc_taus,bins=bins, weights=np.zeros_like(kepecs_ofc_taus) + 1. / len(kepecs_ofc_taus))
-plt.axvline(kepecs_ofc_pars[1],color='r',linestyle='dashed',linewidth=1)
+plt.hist(lemerre_mpfc_taus,bins=bins, weights=np.zeros_like(lemerre_mpfc_taus) + 1. / len(lemerre_mpfc_taus))
+plt.axvline(lemerre_mpfc_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
-plt.title('%i Rat OFC units \n Buzsaki' %len(kepecs_ofc_taus))
+plt.title('%i Rat mPFC units \n LeMerre, lag = 3')
 plt.show()
 
 #%% Correlation matrix
 
-kepecs_ofc_mean_matrix = np.mean(kepecs_ofc_correlation_matrices,axis=0)
+# lemerre_mpfc_mean_matrix = np.mean(lemerre_mpfc_correlation_matrices,axis=0)
 
-plt.imshow(kepecs_ofc_mean_matrix)
-plt.tight_layout()
-plt.title('Kepecs Rat OFC')
-plt.xlabel('lag (ms)')
-plt.ylabel('lag (ms)')
-plt.xticks(range(0,20,2),range(0,1000,100))
-plt.yticks(range(0,20,2),range(0,1000,100))
-plt.colorbar()
+# plt.imshow(lemerre_mpfc_mean_matrix)
+# plt.tight_layout()
+# plt.title('LeMerre Rat mpfc')
+# plt.xlabel('lag (ms)')
+# plt.ylabel('lag (ms)')
+# plt.xticks(range(0,20,2),range(0,1000,100))
+# plt.yticks(range(0,20,2),range(0,1000,100))
+# plt.colorbar()
+# plt.show()
+
+#%% Plot tau vs location
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+for fit_unit in range(len(lemerre_mpfc_taus)):
+    
+    log_tau = np.log10(lemerre_mpfc_taus[fit_unit])
+                      
+    ax.scatter(lemerre_mpfc_coords[fit_unit][0],lemerre_mpfc_coords[fit_unit][1],lemerre_mpfc_coords[fit_unit][2],c=log_tau,cmap='gray')
+    
+ax.set_xlabel('M/L (mm)')
+ax.set_ylabel('A/P (mm)')
+ax.set_zlabel('Depth (mm)')
+
+ax.set_title('LeMerre')
+
 plt.show()

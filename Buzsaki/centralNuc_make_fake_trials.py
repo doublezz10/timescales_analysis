@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan 22 11:57:58 2021
+Created on Thu Feb 25 11:43:30 2021
 
 @author: zachz
 """
@@ -13,31 +13,34 @@ import scipy.io as spio
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import warnings
+import csv
 warnings.filterwarnings("ignore")
 
 #%% Load data
 
-ofc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Kepecs - rat OFC 2/kepecs_rat_ofc.mat',simplify_cells=True)
+ceAmg = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Buzsaki2/buzsaki_central.mat',simplify_cells=True)
 
-spikes = ofc['spikes']
+spikes = ceAmg['spikes']
 
 try:
-   cell_info = ofc['cell_info']
+   cell_info = ceAmg['cell_info']
 except NameError:
    pass
 
 #%% Begin working!
 
-kepecs_ofc_all_means = []
-kepecs_ofc_taus = []
-kepecs_ofc_failed_fits = []
+all_data_buzsaki_cen = []
 
-kepecs_ofc_failed_autocorr = []
-kepecs_ofc_no_spikes_in_a_bin = []
-kepecs_ofc_low_fr = []
+buzsaki_cen_all_means = []
+buzsaki_cen_taus = []
+buzsaki_cen_failed_fits = []
 
-kepecs_ofc_avg_fr = []
-kepecs_ofc_correlation_matrices = []
+buzsaki_cen_failed_autocorr = []
+buzsaki_cen_no_spikes_in_a_bin = []
+buzsaki_cen_low_fr = []
+
+buzsaki_cen_avg_fr = []
+buzsaki_cen_correlation_matrices = []
 
 for unit in range(len(spikes)):
 
@@ -51,13 +54,11 @@ for unit in range(len(spikes)):
 
     binned_spikes, edges = np.histogram(unit_spikes,bins=bins)
 
-    # Every x seconds is a new "trial"
-
-    x = 3
+    # Every 3 seconds is a new "trial"
 
     binned_unit_spikes = []
 
-    for start_t in range(0,len(binned_spikes),20 * x):
+    for start_t in range(0,len(binned_spikes),20*3):
 
         trial_spikes = binned_spikes[start_t:start_t+19]
 
@@ -70,8 +71,6 @@ for unit in range(len(spikes)):
     [trials,bins] = binned_unit_spikes.shape
 
     summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
-
-    kepecs_ofc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
     #%% Do autocorrelation
 
@@ -88,15 +87,15 @@ for unit in range(len(spikes)):
 
     if np.isnan(one_autocorrelation).any() == True:
 
-        kepecs_ofc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+        buzsaki_cen_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
     elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))] == True:
 
-        kepecs_ofc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+        buzsaki_cen_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
 
     elif np.sum(summed_spikes_per_bin) < 1:
 
-        kepecs_ofc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+        buzsaki_cen_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
     else:
 
@@ -104,10 +103,10 @@ for unit in range(len(spikes)):
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
 
-        kepecs_ofc_correlation_matrices.append(correlation_matrix)
+        buzsaki_cen_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
-        # plt.title('Rat OFC unit %i' %unit)
+        # plt.title('Rat central nucleus unit %i' %unit)
         # plt.xlabel('lag')
         # plt.ylabel('lag')
         # plt.xticks(range(0,19))
@@ -169,7 +168,7 @@ for unit in range(len(spikes)):
         y_s = np.array(y_s)
 
         # plt.plot(x_s,y_s,'ro')
-        # plt.title('Rat OFC unit %i' %unit)
+        # plt.title('Rat central nucleus unit %i' %unit)
         # plt.xlabel('lag (ms)')
         # plt.ylabel('autocorrelation')
         # plt.show()
@@ -221,41 +220,52 @@ for unit in range(len(spikes)):
 
         except RuntimeError:
             print("Error - curve_fit failed")
-            kepecs_ofc_failed_fits.append(unit)
+            buzsaki_cen_failed_fits.append(unit)
+            
+        r2 = (np.corrcoef(y_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars)))[0,1]**2
 
-        kepecs_ofc_taus.append(pars[1])
+        buzsaki_cen_taus.append(pars[1])
+        buzsaki_cen_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
-        kepecs_ofc_all_means.append(y_m)
+        buzsaki_cen_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro',label='original data')
         # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
         # plt.xlabel('lag (ms)')
         # plt.ylabel('mean autocorrelation')
-        # plt.title('Rat OFC %i' %unit)
+        # plt.title('Rat central nucleus %i' %unit)
         # plt.legend()
         # plt.show()
+        
+        #%% Add data to 'all_data'
+        
+        all_data_buzsaki_cen.append(('buzsaki','rat','central',unit+1,pars[1],np.sum(summed_spikes_per_bin)/trials,r2,pars[0],pars[2]))
 
+with open('/Users/zachz/Documents/timescales_analysis/results.csv','a') as out:
+    csv_out=csv.writer(out)
+    for row in all_data_buzsaki_cen:
+        csv_out.writerow(row)
 #%% How many units got filtered?
 
-kepecs_ofc_bad_units = len(kepecs_ofc_failed_autocorr) + len(kepecs_ofc_no_spikes_in_a_bin) + len(kepecs_ofc_low_fr)
+buzsaki_cen_bad_units = len(buzsaki_cen_failed_autocorr) + len(buzsaki_cen_no_spikes_in_a_bin) + len(buzsaki_cen_low_fr)
 
-print('%i units were filtered out' %kepecs_ofc_bad_units)
+print('%i units were filtered out' %buzsaki_cen_bad_units)
 print('out of %i total units' %len(spikes))
 
 #%% Take mean of all units
 
-kepecs_ofc_all_means = np.vstack(kepecs_ofc_all_means)
+buzsaki_cen_all_means = np.vstack(buzsaki_cen_all_means)
 
-kepecs_ofc_mean = np.mean(kepecs_ofc_all_means,axis=0)
-kepecs_ofc_sd = np.std(kepecs_ofc_all_means,axis=0)
-kepecs_ofc_se = kepecs_ofc_sd/np.sqrt(len(kepecs_ofc_mean))
+buzsaki_cen_mean = np.mean(buzsaki_cen_all_means,axis=0)
+buzsaki_cen_sd = np.std(buzsaki_cen_all_means,axis=0)
+buzsaki_cen_se = buzsaki_cen_sd/np.sqrt(len(buzsaki_cen_mean))
 
-kepecs_ofc_mean_fr = np.mean(kepecs_ofc_avg_fr)
+buzsaki_cen_mean_fr = np.mean(buzsaki_cen_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(kepecs_ofc_mean)
+mean_diff = np.diff(buzsaki_cen_mean)
 
 neg_mean_diffs = []
 
@@ -267,52 +277,53 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-kepecs_ofc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],kepecs_ofc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+buzsaki_cen_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],buzsaki_cen_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,kepecs_ofc_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*kepecs_ofc_pars),label='fit curve')
+plt.plot(x_m,buzsaki_cen_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*buzsaki_cen_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat OFC units \n Kepecs')
-plt.text(710,0.025,'tau = %i ms \n fr = %.2f hz \n n = %i' % (kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
+plt.title('Mean of all Rat central nucleus units \n Buzsaki')
+plt.text(710,0.1,'tau = %i ms \n fr = %.2f hz \n n = %i' % (buzsaki_cen_pars[1],buzsaki_cen_mean_fr,len(buzsaki_cen_taus)))
 plt.show()
 
-a_kepecs = (('kepecs','ofc',kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
+a_population_buzsaki_cen = (('buzsaki','central',buzsaki_cen_pars[1],buzsaki_cen_mean_fr,len(buzsaki_cen_taus)))
 
 #%% Add error bars
 
-plt.errorbar(x_m, kepecs_ofc_mean, yerr=kepecs_ofc_se, label='data +/- se')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*kepecs_ofc_pars),label='fit curve')
+plt.errorbar(x_m, buzsaki_cen_mean, yerr=buzsaki_cen_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*buzsaki_cen_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat OFC units \n Kepecs')
-plt.text(710,0.015,'tau = %i ms \n fr = %.2f hz \n n = %i' % (kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
+plt.title('Mean of all Rat central nucleus units \n Buzsaki')
+plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (buzsaki_cen_pars[1],buzsaki_cen_mean_fr,len(buzsaki_cen_taus)))
+plt.ylim((0,0.16))
 plt.show()
 
 #%% Histogram of taus
 
 bins = 10**np.arange(0,4,0.1)
 
-plt.hist(kepecs_ofc_taus,bins=bins, weights=np.zeros_like(kepecs_ofc_taus) + 1. / len(kepecs_ofc_taus))
-plt.axvline(kepecs_ofc_pars[1],color='r',linestyle='dashed',linewidth=1)
+plt.hist(buzsaki_cen_taus,bins=bins, weights=np.zeros_like(buzsaki_cen_taus) + 1. / len(buzsaki_cen_taus))
+plt.axvline(buzsaki_cen_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
-plt.title('%i Rat OFC units \n Buzsaki' %len(kepecs_ofc_taus))
+plt.title('%i Rat central nucleus units \n Buzsaki' %len(buzsaki_cen_taus))
 plt.show()
 
 #%% Correlation matrix
 
-kepecs_ofc_mean_matrix = np.mean(kepecs_ofc_correlation_matrices,axis=0)
+# buzsaki_cen_mean_matrix = np.mean(buzsaki_cen_correlation_matrices,axis=0)
 
-plt.imshow(kepecs_ofc_mean_matrix)
-plt.tight_layout()
-plt.title('Kepecs Rat OFC')
-plt.xlabel('lag (ms)')
-plt.ylabel('lag (ms)')
-plt.xticks(range(0,20,2),range(0,1000,100))
-plt.yticks(range(0,20,2),range(0,1000,100))
-plt.colorbar()
-plt.show()
+# plt.imshow(buzsaki_cen_mean_matrix)
+# plt.tight_layout()
+# plt.title('Buzsaki Rat cengdala')
+# plt.xlabel('lag (ms)')
+# plt.ylabel('lag (ms)')
+# plt.xticks(range(0,20,2),range(0,1000,100))
+# plt.yticks(range(0,20,2),range(0,1000,100))
+# plt.colorbar()
+# plt.show()

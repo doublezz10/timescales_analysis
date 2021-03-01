@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan 22 11:57:58 2021
+Created on Thu Feb 18 16:31:31 2021
 
 @author: zachz
 """
@@ -14,30 +14,33 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import warnings
 warnings.filterwarnings("ignore")
+import random
 
 #%% Load data
 
-ofc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Kepecs - rat OFC 2/kepecs_rat_ofc.mat',simplify_cells=True)
+amy = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Meg - monkey/meg_scACC.mat',simplify_cells=True)
 
-spikes = ofc['spikes']
+spikes = amy['spikes']
 
 try:
-   cell_info = ofc['cell_info']
-except NameError:
+   cell_info = amy['cell_info']
+except KeyError:
    pass
 
 #%% Begin working!
 
-kepecs_ofc_all_means = []
-kepecs_ofc_taus = []
-kepecs_ofc_failed_fits = []
+all_data_meg_sc_faketrials = []
 
-kepecs_ofc_failed_autocorr = []
-kepecs_ofc_no_spikes_in_a_bin = []
-kepecs_ofc_low_fr = []
+meg_sc_all_means = []
+meg_sc_taus = []
+meg_sc_failed_fits = []
 
-kepecs_ofc_avg_fr = []
-kepecs_ofc_correlation_matrices = []
+meg_sc_failed_autocorr = []
+meg_sc_no_spikes_in_a_bin = []
+meg_sc_low_fr = []
+
+meg_sc_avg_fr = []
+meg_sc_correlation_matrices = []
 
 for unit in range(len(spikes)):
 
@@ -51,13 +54,22 @@ for unit in range(len(spikes)):
 
     binned_spikes, edges = np.histogram(unit_spikes,bins=bins)
 
-    # Every x seconds is a new "trial"
-
-    x = 3
+    # Every 3 seconds is a new "trial"
 
     binned_unit_spikes = []
+    
+    max_trials = int(np.max(unit_spikes)/5)
+    
+    start_times = np.empty(max_trials)
+    start_times[0] = 0
+    
+    for i in range(1, max_trials):
+        start_times[i] = start_times[i-1] + random.randint(2,5)
+        
+    start_times = start_times * 20
+    start_times = start_times.astype(int)
 
-    for start_t in range(0,len(binned_spikes),20 * x):
+    for start_t in start_times:
 
         trial_spikes = binned_spikes[start_t:start_t+19]
 
@@ -70,8 +82,6 @@ for unit in range(len(spikes)):
     [trials,bins] = binned_unit_spikes.shape
 
     summed_spikes_per_bin = np.sum(binned_unit_spikes,axis=0)
-
-    kepecs_ofc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
     #%% Do autocorrelation
 
@@ -88,15 +98,15 @@ for unit in range(len(spikes)):
 
     if np.isnan(one_autocorrelation).any() == True:
 
-        kepecs_ofc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
+        meg_sc_failed_autocorr.append(unit) # skip this unit if any autocorrelation fails
 
     elif [summed_spikes_per_bin[bin] == 0 for bin in range(len(summed_spikes_per_bin))] == True:
 
-        kepecs_ofc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
+        meg_sc_no_spikes_in_a_bin.append(unit) # skip this unit if any bin doesn't have spikes
 
     elif np.sum(summed_spikes_per_bin) < 1:
 
-        kepecs_ofc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
+        meg_sc_low_fr.append(unit) # skip this unit if avg firing rate across all trials is < 1
 
     else:
 
@@ -104,7 +114,7 @@ for unit in range(len(spikes)):
 
         correlation_matrix = np.reshape(one_autocorrelation,(-1,19))
 
-        kepecs_ofc_correlation_matrices.append(correlation_matrix)
+        meg_sc_correlation_matrices.append(correlation_matrix)
 
         # plt.imshow(correlation_matrix)
         # plt.title('Rat OFC unit %i' %unit)
@@ -221,11 +231,14 @@ for unit in range(len(spikes)):
 
         except RuntimeError:
             print("Error - curve_fit failed")
-            kepecs_ofc_failed_fits.append(unit)
+            meg_sc_failed_fits.append(unit)
+            
+        r2 = (np.corrcoef(y_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars)))[0,1]**2
 
-        kepecs_ofc_taus.append(pars[1])
+        meg_sc_taus.append(pars[1])
+        meg_sc_avg_fr.append(np.sum(summed_spikes_per_bin)/trials)
 
-        kepecs_ofc_all_means.append(y_m)
+        meg_sc_all_means.append(y_m)
 
         # plt.plot(x_m,y_m,'ro',label='original data')
         # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit')
@@ -234,28 +247,32 @@ for unit in range(len(spikes)):
         # plt.title('Rat OFC %i' %unit)
         # plt.legend()
         # plt.show()
+        
+        #%% Add data to 'all_data'
+        
+        all_data_meg_sc_faketrials.append(('meg','monkey','sc',unit,pars[1],np.sum(summed_spikes_per_bin)/trials,r2,pars[0],pars[2]))
 
 #%% How many units got filtered?
 
-kepecs_ofc_bad_units = len(kepecs_ofc_failed_autocorr) + len(kepecs_ofc_no_spikes_in_a_bin) + len(kepecs_ofc_low_fr)
+meg_sc_bad_units = len(meg_sc_failed_autocorr) + len(meg_sc_no_spikes_in_a_bin) + len(meg_sc_low_fr)
 
-print('%i units were filtered out' %kepecs_ofc_bad_units)
+print('%i units were filtered out' %meg_sc_bad_units)
 print('out of %i total units' %len(spikes))
 
 #%% Take mean of all units
 
-kepecs_ofc_all_means = np.vstack(kepecs_ofc_all_means)
+meg_sc_all_means = np.vstack(meg_sc_all_means)
 
-kepecs_ofc_mean = np.mean(kepecs_ofc_all_means,axis=0)
-kepecs_ofc_sd = np.std(kepecs_ofc_all_means,axis=0)
-kepecs_ofc_se = kepecs_ofc_sd/np.sqrt(len(kepecs_ofc_mean))
+meg_sc_mean = np.mean(meg_sc_all_means,axis=0)
+meg_sc_sd = np.std(meg_sc_all_means,axis=0)
+meg_sc_se = meg_sc_sd/np.sqrt(len(meg_sc_mean))
 
-kepecs_ofc_mean_fr = np.mean(kepecs_ofc_avg_fr)
+meg_sc_mean_fr = np.mean(meg_sc_avg_fr)
 
 def func(x,a,tau,b):
     return a*((np.exp(-x/tau))+b)
 
-mean_diff = np.diff(kepecs_ofc_mean)
+mean_diff = np.diff(meg_sc_mean)
 
 neg_mean_diffs = []
 
@@ -267,49 +284,48 @@ for diff in range(len(mean_diff)):
 
 first_neg_mean_diff = np.min(neg_mean_diffs)
 
-kepecs_ofc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],kepecs_ofc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
+meg_sc_pars,cov = curve_fit(func,x_m[first_neg_mean_diff:],meg_sc_mean[first_neg_mean_diff:],p0=[1,100,1],bounds=((0,np.inf)))
 
-plt.plot(x_m,kepecs_ofc_mean,label='original data')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*kepecs_ofc_pars),label='fit curve')
+plt.plot(x_m,meg_sc_mean,label='original data')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*meg_sc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
-plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat OFC units \n Kepecs')
-plt.text(710,0.025,'tau = %i ms \n fr = %.2f hz \n n = %i' % (kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
+plt.ylabel('mean autocorrelation')
+plt.title('Mean of all monkey scACC units \n Meg (fake trials)')
+plt.text(710,0.08,'tau = %i ms \n fr = %.2f hz \n n = %i' % (meg_sc_pars[1],meg_sc_mean_fr,len(meg_sc_taus)))
 plt.show()
-
-a_kepecs = (('kepecs','ofc',kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
 
 #%% Add error bars
 
-plt.errorbar(x_m, kepecs_ofc_mean, yerr=kepecs_ofc_se, label='data +/- se')
-plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*kepecs_ofc_pars),label='fit curve')
+plt.errorbar(x_m, meg_sc_mean, yerr=meg_sc_se, label='data +/- se')
+plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*meg_sc_pars),label='fit curve')
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat OFC units \n Kepecs')
-plt.text(710,0.015,'tau = %i ms \n fr = %.2f hz \n n = %i' % (kepecs_ofc_pars[1],kepecs_ofc_mean_fr,len(kepecs_ofc_taus)))
+plt.title('Mean of all monkey scACC units \n Meg (fake trials)')
+plt.text(710,0.09,'tau = %i ms \n fr = %.2f hz \n n = %i' % (meg_sc_pars[1],meg_sc_mean_fr,len(meg_sc_taus)))
+plt.ylim((0,0.16))
 plt.show()
 
 #%% Histogram of taus
 
 bins = 10**np.arange(0,4,0.1)
 
-plt.hist(kepecs_ofc_taus,bins=bins, weights=np.zeros_like(kepecs_ofc_taus) + 1. / len(kepecs_ofc_taus))
-plt.axvline(kepecs_ofc_pars[1],color='r',linestyle='dashed',linewidth=1)
+plt.hist(meg_sc_taus,bins=bins, weights=np.zeros_like(meg_sc_taus) + 1. / len(meg_sc_taus))
+plt.axvline(meg_sc_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
-plt.title('%i Rat OFC units \n Buzsaki' %len(kepecs_ofc_taus))
+plt.title('%i Monkey scACC units \n Meg (fake trials)' %len(meg_sc_taus))
 plt.show()
 
 #%% Correlation matrix
 
-kepecs_ofc_mean_matrix = np.mean(kepecs_ofc_correlation_matrices,axis=0)
+meg_sc_mean_matrix = np.mean(meg_sc_correlation_matrices,axis=0)
 
-plt.imshow(kepecs_ofc_mean_matrix)
+plt.imshow(meg_sc_mean_matrix)
 plt.tight_layout()
-plt.title('Kepecs Rat OFC')
+plt.title('Meg scACC')
 plt.xlabel('lag (ms)')
 plt.ylabel('lag (ms)')
 plt.xticks(range(0,20,2),range(0,1000,100))
