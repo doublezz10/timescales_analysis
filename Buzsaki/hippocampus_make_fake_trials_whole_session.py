@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore")
 
 #%% Load data
 
-hc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Buzsaki2/buzsaki_hippocampus.mat',simplify_cells=True)
+hc = spio.loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Buzsaki2/whole_session/buzsaki_hippocampus.mat',simplify_cells=True)
 
 spikes = hc['spikes']
 
@@ -285,7 +285,7 @@ plt.plot(x_m[first_neg_mean_diff:],func(x_m[first_neg_mean_diff:],*buzsaki_hc_pa
 plt.legend(loc='upper right')
 plt.xlabel('lag (ms)')
 plt.ylabel('autocorrelation')
-plt.title('Mean of all Rat hippocampus units \n Buzsaki')
+plt.title('Mean of all Rat hippocampus units \n Buzsaki, whole session')
 plt.text(710,0.12,'tau = %i ms \n fr = %.2f hz \n n = %i' % (buzsaki_hc_pars[1],buzsaki_hc_mean_fr,len(buzsaki_hc_taus)))
 plt.show()
 
@@ -313,7 +313,7 @@ plt.axvline(buzsaki_hc_pars[1],color='r',linestyle='dashed',linewidth=1)
 plt.xlabel('tau (ms)')
 plt.ylabel('proportion')
 plt.xscale('log')
-plt.title('%i Rat hippocampus units \n Buzsaki' %len(buzsaki_hc_taus))
+plt.title('%i Rat hippocampus units \n Buzsaki, whole session' %len(buzsaki_hc_taus))
 plt.show()
 
 #%% Correlation matrix

@@ -332,3 +332,11 @@ plt.xticks(range(0,20,2),range(0,1000,100))
 plt.yticks(range(0,20,2),range(0,1000,100))
 plt.colorbar()
 plt.show()
+
+#%% Raster and binned raster for one unit
+
+fig, axs = plt.subplots(2,1)
+
+axs[0].eventplot(unit_spikes)
+axs[1].imshow(binned_unit_spikes)
+

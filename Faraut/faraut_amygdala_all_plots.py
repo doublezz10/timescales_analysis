@@ -221,13 +221,13 @@ for unit in range(len(spikes)):
 
             faraut_amyg_all_means.append(y_m)
 
-            # plt.plot(x_m,y_m,'ro',label='original data')
-            # plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit (tau = %i)' %pars[1])
-            # plt.xlabel('lag (ms)')
-            # plt.ylabel('mean autocorrelation')
-            # plt.title('Faraut amygdala %i' %unit)
-            # plt.legend()
-            # plt.show()
+            plt.plot(x_m,y_m,'ro',label='original data')
+            plt.plot(x_m[first_neg_diff:],func(x_m[first_neg_diff:],*pars),label='fit (tau = %i)' %pars[1])
+            plt.xlabel('lag (ms)')
+            plt.ylabel('mean autocorrelation')
+            plt.title('Faraut amygdala %i' %unit)
+            plt.legend()
+            plt.show()
 
             #%% Add data to 'all_data'
 
