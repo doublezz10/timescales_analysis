@@ -148,7 +148,7 @@ matching_units = pd.DataFrame(matching_units,columns=['dataset','brain_area','un
 
 #%% Separate by brain area
 
-acc = matching_units[(matching_units.brain_area == 'acc') | (matching_units.brain_area == 'dACC') | (matching_units.brain_area == 'aca')]
+acc = matching_units[(matching_units.brain_area == 'acc') | (matching_units.brain_area == 'dACC') | (matching_units.brain_area == 'aca') | (matching_units.brain_area == 'mcc')]
 
 amyg = matching_units[(matching_units.brain_area == 'amygdala') | (matching_units.brain_area == 'central') | (matching_units.brain_area == 'bla')]
 
@@ -187,6 +187,8 @@ sns.scatterplot(data=amyg,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,lege
 plt.title('Amygdala')
 plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
 plt.legend(loc='upper left')
+plt.xlabel('Zach tau (ms)')
+plt.ylabel('Fred tau (ms)')
 plt.show()
 
 sns.lmplot(data=hc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
@@ -194,6 +196,8 @@ sns.scatterplot(data=hc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend
 plt.title('Hippocampus')
 plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
 plt.legend(loc='upper left')
+plt.xlabel('Zach tau (ms)')
+plt.ylabel('Fred tau (ms)')
 plt.show()
 
 sns.lmplot(data=mpfc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
@@ -201,6 +205,8 @@ sns.scatterplot(data=mpfc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,lege
 plt.title('mPFC')
 plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
 plt.legend(loc='upper left')
+plt.xlabel('Zach tau (ms)')
+plt.ylabel('Fred tau (ms)')
 plt.show()
 
 sns.lmplot(data=ofc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
@@ -208,6 +214,8 @@ sns.scatterplot(data=ofc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legen
 plt.title('OFC')
 plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
 plt.legend(loc='upper left')
+plt.xlabel('Zach tau (ms)')
+plt.ylabel('Fred tau (ms)')
 plt.show()
 
 sns.lmplot(data=striatum,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
@@ -215,6 +223,8 @@ sns.scatterplot(data=striatum,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,
 plt.title('Striatum')
 plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
 plt.legend(loc='upper left')
+plt.xlabel('Zach tau (ms)')
+plt.ylabel('Fred tau (ms)')
 plt.show()
 
 #%% one big subplot
@@ -253,5 +263,15 @@ sns.lmplot(data=brain_region_data,x='zach_tau',y='tau_diff',hue='dataset',col='b
 plt.show()
 
 sns.lmplot(data=brain_region_data,x='fred_tau',y='tau_diff',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
+
+plt.show()
+
+#%%
+
+sns.lmplot(data=brain_region_data,x='zach_fr',y='zach_r2',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
+
+plt.show()
+
+sns.lmplot(data=brain_region_data,x='fred_fr',y='fred_r2',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
 
 plt.show()

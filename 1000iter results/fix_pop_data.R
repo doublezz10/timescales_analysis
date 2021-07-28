@@ -19,6 +19,9 @@ fixed_raw <- fixed_raw %>% subset(dataset != 'wirth')
 wirth_data <- vroom('pop_values3-2.csv')
 wirth_data <- wirth_data[-c(1)]
 
-new_data <- rbind(fixed_raw,wirth_data)
+font_data <- vroom('pop_values4.csv')
+font_data <- font_data[-c(1)]
+
+new_data <- rbind(fixed_raw,wirth_data,font_data)
 
 vroom_write(new_data,'fixedpop.csv',delim=',')

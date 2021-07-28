@@ -116,7 +116,7 @@ GeomFlatViolin <-
 
 ## Import Fred's data
 
-df_fred = read.csv('~/Documents/timescales_analysis/GLM/fred_data_v3.csv')
+df_fred = read.csv('~/Documents/timescales_analysis/fred_results.csv')
 
 df_fred = df_fred %>% mutate(species = factor(species),unitID = as.character(unitID))
 df_fred = df_fred %>% rename(unit_id = unitID,
@@ -126,14 +126,16 @@ df_fred = df_fred %>% rename(unit_id = unitID,
 
 ## Add new column to group by brain region (i.e. collapse subregions)
 
-df_fred_grouped = df_fred %>% mutate(brain_region = ifelse(brain_area %in% c('acc', 'aca', 'dACC', 'scACC'), "ACC",
+df_fred_grouped = df_fred %>% mutate(brain_region = ifelse(brain_area %in% c('acc', 'aca', 'dACC'), "ACC",
                                                         ifelse(brain_area %in% c('amygdala','bla','AMG','central'), "Amygdala",
                                                         ifelse(brain_area %in% c('hippocampus','hippocampus2','ca1','ca2','ca3','dg'), "Hippocampus",
                                                         ifelse(brain_area %in% c('LAI'), "Insula",
-                                                        ifelse(brain_area %in% c('mpfc','ila','pl','mPFC'), "mPFC",
+                                                        ifelse(brain_area %in% c('mpfc','ila','pl','mPFC','scACC'), "mPFC",
                                                         ifelse(brain_area %in% c('OFC','orb','ofc'), "OFC",
                                                         ifelse(brain_area %in% c('ventralStriatum','PUT','Cd'), "Striatum",
                                                           "other"))))))))
+
+df_fred_grouped = df_fred_grouped %>% filter(keep == 1)
 
 df_fred_grouped %>% filter(brain_region != 'other') %>% ggplot(aes(x=species,y=tau,color=brain_region,fill=brain_region)) +
   geom_flat_violin(position=position_nudge(x=0.2,y=0),adjust=2,alpha=0.5) + 
@@ -314,4 +316,20 @@ df_fred_grouped %>% filter(species == 'human') %>% ggplot(aes(x=brain_region,y=t
   scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 10^x),
                 labels = scales::trans_format("log10", scales::math_format(10^.x)),
                 limits = c(9,1100))
+
+## Nice line graph
+
+se <- function(x) sqrt(var(x)/length(x))
+
+df_fred_grouped$brain_region = factor(df_fred_grouped$brain_region,levels=c('Hippocampus','Amygdala','OFC','mPFC','ACC'))
+
+
+df_fred_grouped %>% 
+  filter(brain_region %in% c('OFC','Hippocampus','Amygdala','ACC','mPFC')) %>% group_by(species,brain_region) %>%
+  summarise(mean_tau = mean(tau), sd = sd(tau), se = se(tau)) %>%
+  ggplot(aes(x=brain_region,y=mean_tau,color=species,fill=species)) +
+  geom_point(size=3) + geom_line(aes(group=species))+
+  geom_errorbar(aes(ymin=mean_tau-se, ymax=mean_tau+se), width=.1) + 
+  xlab('Brain Region') +
+  ylab('tau (ms)') + ggtitle('ISI method')
 

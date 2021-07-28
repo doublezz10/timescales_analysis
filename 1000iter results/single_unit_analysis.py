@@ -35,7 +35,7 @@ print('Proportion of units surviving filtering:', len(data)/len(raw_data))
 
 # raw data
 
-raw_acc = raw_data[(raw_data.brain_area == 'acc') | (raw_data.brain_area == 'dACC') | (raw_data.brain_area == 'aca')]
+raw_acc = raw_data[(raw_data.brain_area == 'acc') | (raw_data.brain_area == 'dACC') | (raw_data.brain_area == 'aca') | (raw_data.brain_area == 'mcc')]
 
 raw_amyg = raw_data[(raw_data.brain_area == 'amygdala') | (raw_data.brain_area == 'central') | (raw_data.brain_area == 'bla')]
 
@@ -49,7 +49,7 @@ raw_striatum = raw_data[(raw_data.brain_area == 'vStriatum') | (raw_data.brain_a
 
 # filtered data
 
-acc = data[(data.brain_area == 'acc') | (data.brain_area == 'dACC') | (data.brain_area == 'aca')]
+acc = data[(data.brain_area == 'acc') | (data.brain_area == 'dACC') | (data.brain_area == 'aca') | (data.brain_area == 'mcc')]
 
 amyg = data[(data.brain_area == 'amygdala') | (data.brain_area == 'central') | (data.brain_area == 'bla')]
 
@@ -61,7 +61,9 @@ ofc = data[(data.brain_area == 'ofc') | (data.brain_area == 'orb')]
            
 striatum = data[(data.brain_area == 'vStriatum') | (data.brain_area == 'putamen') | (data.brain_area == 'caudate')]
 
-#%% Plot of surviving units by brain area
+brain_regions = pd.concat((acc,amyg,hc,mpfc,ofc,striatum))
+
+#%% Plot of surviving iterations by brain area
 
 prop_surviving = [len(acc)/len(raw_acc),len(amyg)/len(raw_amyg),len(hc)/len(raw_hc),len(mpfc)/len(raw_mpfc),len(ofc)/len(raw_ofc),len(striatum)/len(raw_striatum)]
 
@@ -88,6 +90,58 @@ for dataset in data.dataset.unique():
     
             this_unit = these_data[these_data.unit == unit_n]
             
+            if len(this_unit) < 100:
+                
+                pass
+            
+            else:
+            
+                species = this_unit.iloc[0]['species']
+                
+                mean_tau = np.mean(this_unit['tau'])
+                
+                sd_tau = np.std(this_unit['tau'])
+                
+                mean_r2 = np.mean(this_unit['r2'])
+                
+                sd_r2 = np.std(this_unit['r2'])
+                
+                mean_fr = np.mean(this_unit['fr'])
+                
+                sd_fr = np.std(this_unit['fr'])
+                
+                n = len(this_unit)
+                
+                try:
+                
+                    all_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+                    
+                except:
+                    
+                    pass
+    
+all_means = pd.DataFrame(all_means,columns=['dataset','species','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
+
+all_means['species'] = pd.Categorical(all_means['species'], categories=listofspecies, ordered=True)
+
+#%% ACC
+
+acc_means = []
+
+for dataset in acc.dataset.unique():
+    
+    these_data = acc[acc.dataset == dataset]
+
+    for unit_n in these_data.unit.unique():
+
+        this_unit = these_data[these_data.unit == unit_n]
+        
+        if len(this_unit) < 100:
+                
+                pass
+            
+        else:
+            
             species = this_unit.iloc[0]['species']
             
             mean_tau = np.mean(this_unit['tau'])
@@ -104,42 +158,14 @@ for dataset in data.dataset.unique():
             
             n = len(this_unit)
             
-            all_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
-    
-all_means = pd.DataFrame(all_means,columns=['dataset','species','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
-
-all_means['species'] = pd.Categorical(all_means['species'], categories=listofspecies, ordered=True)
-
-# ACC
-
-acc_means = []
-
-for dataset in acc.dataset.unique():
-    
-    these_data = acc[acc.dataset == dataset]
-
-    for unit_n in these_data.unit.unique():
-
-        this_unit = these_data[these_data.unit == unit_n]
-        
-        species = this_unit.iloc[0]['species']
-        
-        mean_tau = np.mean(this_unit['tau'])
-        
-        sd_tau = np.std(this_unit['tau'])
-        
-        mean_r2 = np.mean(this_unit['r2'])
-        
-        sd_r2 = np.std(this_unit['r2'])
-        
-        mean_fr = np.mean(this_unit['fr'])
-        
-        sd_fr = np.std(this_unit['fr'])
-        
-        n = len(this_unit)
-        
-        acc_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
-    
+            try:
+            
+                acc_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+                
+            except:
+                
+                pass
+                
 acc_means = pd.DataFrame(acc_means,columns=['dataset','species','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
 
 acc_means['species'] = pd.Categorical(acc_means['species'], categories=listofspecies, ordered=True)
@@ -156,24 +182,30 @@ for dataset in amyg.dataset.unique():
 
         this_unit = these_data[these_data.unit == unit_n]
         
-        species = this_unit.iloc[0]['species']
-        
-        mean_tau = np.mean(this_unit['tau'])
-        
-        sd_tau = np.std(this_unit['tau'])
-        
-        mean_r2 = np.mean(this_unit['r2'])
-        
-        sd_r2 = np.std(this_unit['r2'])
-        
-        mean_fr = np.mean(this_unit['fr'])
-        
-        sd_fr = np.std(this_unit['fr'])
-        
-        n = len(this_unit)
-        
-        amyg_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
-    
+        if len(this_unit) < 100:
+                
+            pass
+            
+        else:
+            
+            species = this_unit.iloc[0]['species']
+            
+            mean_tau = np.mean(this_unit['tau'])
+            
+            sd_tau = np.std(this_unit['tau'])
+            
+            mean_r2 = np.mean(this_unit['r2'])
+            
+            sd_r2 = np.std(this_unit['r2'])
+            
+            mean_fr = np.mean(this_unit['fr'])
+            
+            sd_fr = np.std(this_unit['fr'])
+            
+            n = len(this_unit)
+            
+            amyg_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+
 amyg_means = pd.DataFrame(amyg_means,columns=['dataset','species','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
 
 amyg_means['species'] = pd.Categorical(amyg_means['species'], categories=listofspecies, ordered=True)
@@ -187,27 +219,39 @@ for dataset in hc.dataset.unique():
     these_data = hc[hc.dataset == dataset]
 
     for unit_n in these_data.unit.unique():
-
+        
         this_unit = these_data[these_data.unit == unit_n]
-        
-        species = this_unit.iloc[0]['species']
-        
-        mean_tau = np.mean(this_unit['tau'])
-        
-        sd_tau = np.std(this_unit['tau'])
-        
-        mean_r2 = np.mean(this_unit['r2'])
-        
-        sd_r2 = np.std(this_unit['r2'])
-        
-        mean_fr = np.mean(this_unit['fr'])
-        
-        sd_fr = np.std(this_unit['fr'])
-        
-        n = len(this_unit)
-        
-        hc_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
-    
+
+        if len(this_unit) < 100:
+                
+                pass
+            
+        else:
+            
+            species = this_unit.iloc[0]['species']
+            
+            mean_tau = np.mean(this_unit['tau'])
+            
+            sd_tau = np.std(this_unit['tau'])
+            
+            mean_r2 = np.mean(this_unit['r2'])
+            
+            sd_r2 = np.std(this_unit['r2'])
+            
+            mean_fr = np.mean(this_unit['fr'])
+            
+            sd_fr = np.std(this_unit['fr'])
+            
+            n = len(this_unit)
+            
+            try:
+            
+                hc_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+                
+            except:
+                
+                pass
+
 hc_means = pd.DataFrame(hc_means,columns=['dataset','species','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
 
 hc_means['species'] = pd.Categorical(hc_means['species'], categories=listofspecies, ordered=True)
@@ -221,27 +265,39 @@ for dataset in mpfc.dataset.unique():
     these_data = mpfc[mpfc.dataset == dataset]
 
     for unit_n in these_data.unit.unique():
-
+        
         this_unit = these_data[these_data.unit == unit_n]
-        
-        species = this_unit.iloc[0]['species']
-        
-        mean_tau = np.mean(this_unit['tau'])
-        
-        sd_tau = np.std(this_unit['tau'])
-        
-        mean_r2 = np.mean(this_unit['r2'])
-        
-        sd_r2 = np.std(this_unit['r2'])
-        
-        mean_fr = np.mean(this_unit['fr'])
-        
-        sd_fr = np.std(this_unit['fr'])
-        
-        n = len(this_unit)
-        
-        mpfc_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
-    
+
+        if len(this_unit) < 100:
+                
+            pass
+            
+        else:
+            
+            species = this_unit.iloc[0]['species']
+            
+            mean_tau = np.mean(this_unit['tau'])
+            
+            sd_tau = np.std(this_unit['tau'])
+            
+            mean_r2 = np.mean(this_unit['r2'])
+            
+            sd_r2 = np.std(this_unit['r2'])
+            
+            mean_fr = np.mean(this_unit['fr'])
+            
+            sd_fr = np.std(this_unit['fr'])
+            
+            n = len(this_unit)
+            
+            try:
+            
+                mpfc_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+                
+            except:
+                
+                pass
+
 mpfc_means = pd.DataFrame(mpfc_means,columns=['dataset','species','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
 
 mpfc_means['species'] = pd.Categorical(mpfc_means['species'], categories=listofspecies, ordered=True)
@@ -255,27 +311,39 @@ for dataset in ofc.dataset.unique():
     these_data = ofc[ofc.dataset == dataset]
 
     for unit_n in these_data.unit.unique():
-
+        
         this_unit = these_data[these_data.unit == unit_n]
         
-        species = this_unit.iloc[0]['species']
-        
-        mean_tau = np.mean(this_unit['tau'])
-        
-        sd_tau = np.std(this_unit['tau'])
-        
-        mean_r2 = np.mean(this_unit['r2'])
-        
-        sd_r2 = np.std(this_unit['r2'])
-        
-        mean_fr = np.mean(this_unit['fr'])
-        
-        sd_fr = np.std(this_unit['fr'])
-        
-        n = len(this_unit)
-        
-        ofc_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
-    
+        if len(this_unit) < 100:
+                
+            pass
+            
+        else:
+            
+            species = this_unit.iloc[0]['species']
+            
+            mean_tau = np.mean(this_unit['tau'])
+            
+            sd_tau = np.std(this_unit['tau'])
+            
+            mean_r2 = np.mean(this_unit['r2'])
+            
+            sd_r2 = np.std(this_unit['r2'])
+            
+            mean_fr = np.mean(this_unit['fr'])
+            
+            sd_fr = np.std(this_unit['fr'])
+            
+            n = len(this_unit)
+            
+            try:
+            
+                ofc_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+                
+            except:
+                
+                pass
+
 ofc_means = pd.DataFrame(ofc_means,columns=['dataset','species','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
 
 ofc_means['species'] = pd.Categorical(ofc_means['species'], categories=listofspecies, ordered=True)
@@ -289,30 +357,143 @@ for dataset in striatum.dataset.unique():
     these_data = striatum[striatum.dataset == dataset]
 
     for unit_n in these_data.unit.unique():
-
+        
         this_unit = these_data[these_data.unit == unit_n]
-        
-        species = this_unit.iloc[0]['species']
-        
-        mean_tau = np.mean(this_unit['tau'])
-        
-        sd_tau = np.std(this_unit['tau'])
-        
-        mean_r2 = np.mean(this_unit['r2'])
-        
-        sd_r2 = np.std(this_unit['r2'])
-        
-        mean_fr = np.mean(this_unit['fr'])
-        
-        sd_fr = np.std(this_unit['fr'])
-        
-        n = len(this_unit)
-        
-        striatum_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+
+        if len(this_unit) < 100:
+                
+            pass
+            
+        else:
+            
+            species = this_unit.iloc[0]['species']
+            
+            mean_tau = np.mean(this_unit['tau'])
+            
+            sd_tau = np.std(this_unit['tau'])
+            
+            mean_r2 = np.mean(this_unit['r2'])
+            
+            sd_r2 = np.std(this_unit['r2'])
+            
+            mean_fr = np.mean(this_unit['fr'])
+            
+            sd_fr = np.std(this_unit['fr'])
+            
+            n = len(this_unit)
+            
+            try:
+            
+                striatum_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+                
+            except:
+                
+                pass
     
 striatum_means = pd.DataFrame(striatum_means,columns=['dataset','species','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
 
 striatum_means['species'] = pd.Categorical(striatum_means['species'], categories=listofspecies, ordered=True)
+
+#%%
+
+acc_means['brain_region'] = 'acc'
+amyg_means['brain_region'] = 'amygdala'
+hc_means['brain_region'] = 'hippocampus'
+mpfc_means['brain_region'] = 'mpfc'
+ofc_means['brain_region'] = 'ofc'
+striatum_means['brain_region'] = 'striatum'
+
+all_means = pd.concat((acc_means,amyg_means,hc_means,mpfc_means,ofc_means,striatum_means))
+
+#%% Plot of n units per dataset
+
+all_n = []
+
+for dataset in all_means.dataset.unique():
+    
+    this_dataset = all_means[all_means.dataset == dataset]
+    
+    species = this_dataset.iloc[0]['species']
+    
+    if dataset == 'meg':
+        
+        dataset = 'young/mosher'
+    
+    for brain_area in this_dataset.brain_region.unique():
+        
+        dataset_n = 0
+        
+        these_data = this_dataset[this_dataset.brain_region == brain_area]
+        
+        for unit in these_data.unit.unique():
+            
+            dataset_n = dataset_n + 1
+            
+        all_n.append((dataset,brain_area,species,dataset_n))
+    
+n_units = pd.DataFrame(all_n,columns=['dataset','brain_area','species','n'])
+
+n_units = n_units.sort_values('dataset')
+
+n_units['species'] = pd.Categorical(n_units['species'], categories = listofspecies , ordered = True)
+
+#%%
+
+fig = sns.catplot(data=n_units,x='species',y='n',col='brain_area',hue='dataset',col_wrap=3,kind='bar')
+
+# axs.set_xticks(rotation=45)
+# axs.set_ylabel('n units')
+
+
+#%% Variability plot
+
+plt.figure(figsize=(4,4))
+
+sns.relplot(data=all_means[all_means.brain_region=='acc'],x='mean_fr',y='sd_tau',col='species',col_wrap=2)
+
+plt.suptitle('ACC')
+
+plt.show()
+
+plt.figure(figsize=(4,4))
+
+sns.relplot(data=all_means[all_means.brain_region=='amygdala'],x='mean_fr',y='sd_tau',col='species',col_wrap=2)
+
+plt.suptitle('Amygdala')
+
+plt.show()
+
+plt.figure(figsize=(4,4))
+
+sns.relplot(data=all_means[all_means.brain_region=='hippocampus'],x='mean_fr',y='sd_tau',col='species',col_wrap=2)
+
+plt.suptitle('Hippocampus')
+
+plt.show()
+
+plt.figure(figsize=(4,4))
+
+sns.relplot(data=all_means[all_means.brain_region=='mpfc'],x='mean_fr',y='sd_tau',col='species',col_wrap=2)
+
+plt.suptitle('mPFC')
+
+plt.show()
+
+plt.figure(figsize=(4,4))
+
+sns.relplot(data=all_means[all_means.brain_region=='ofc'],x='mean_fr',y='sd_tau',col='species',col_wrap=2)
+
+plt.suptitle('OFC')
+
+plt.show()
+
+plt.figure(figsize=(4,4))
+
+sns.relplot(data=all_means[all_means.brain_region=='striatum'],x='mean_fr',y='sd_tau',col='species',col_wrap=2)
+
+plt.suptitle('striatum')
+
+plt.show()
 
 #%% Raincloud plots by brain area - mean tau
 
@@ -325,12 +506,30 @@ fig, ax = plt.subplots(figsize=(5,5))
 pt.RainCloud(x = dx, y = dy, data = acc_means, palette = pal, bw = sigma,
                  width_viol = .6, ax = ax, orient = ort,point_size=1)
 
+# Calculate number of obs per group & median to position labels
+medians = acc_means.groupby(['species'])['log_tau'].median().values
+nobs = acc_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
+
+myorder = [0,3,2,1]
+nobs = [nobs[i] for i in myorder]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+   ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
+
 plt.xlim((1,3))
 
 plt.title('ACC')
 plt.show() 
 
-# Amygdala
+#%% Amygdala
 
 dx = "species"; dy = "log_tau"; ort = "h"; pal = "Set2"; sigma = .2
 
@@ -339,12 +538,30 @@ fig, ax = plt.subplots(figsize=(5,5))
 pt.RainCloud(x = dx, y = dy, data = amyg_means, palette = pal, bw = sigma,
                  width_viol = .6, ax = ax, orient = ort,point_size=1)
 
+# Calculate number of obs per group & median to position labels
+medians = amyg_means.groupby(['species'])['log_tau'].median().values
+nobs = amyg_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
+
+myorder = [3,2,0,1]
+nobs = [nobs[i] for i in myorder]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+    ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
+
 plt.xlim((1,3))
 
 plt.title('Amygdala')
 plt.show() 
 
-# Hippocampus
+#%% Hippocampus
 
 dx = "species"; dy = "log_tau"; ort = "h"; pal = "Set2"; sigma = .2
 
@@ -353,12 +570,27 @@ fig, ax = plt.subplots(figsize=(5,5))
 pt.RainCloud(x = dx, y = dy, data = hc_means, palette = pal, bw = sigma,
                  width_viol = .6, ax = ax, orient = ort,point_size=1)
 
+# Calculate number of obs per group & median to position labels
+medians = hc_means.groupby(['species'])['log_tau'].median().values
+nobs = hc_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+   ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
+
 plt.xlim((1,3))
 
 plt.title('Hippocampus')
 plt.show() 
 
-# mPFC
+#%% mPFC
 
 dx = "species"; dy = "log_tau"; ort = "h"; pal = "Set2"; sigma = .2
 
@@ -367,12 +599,30 @@ fig, ax = plt.subplots(figsize=(5,5))
 pt.RainCloud(x = dx, y = dy, data = mpfc_means, palette = pal, bw = sigma,
                  width_viol = .6, ax = ax, orient = ort,point_size=1)
 
+# Calculate number of obs per group & median to position labels
+medians = mpfc_means.groupby(['species'])['log_tau'].median().values
+nobs = mpfc_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
+
+myorder = [1,0,2]
+nobs = [nobs[i] for i in myorder]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+   ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
+
 plt.xlim((1,3))
 
 plt.title('mPFC')
 plt.show() 
 
-# OFC
+#%% OFC
 
 dx = "species"; dy = "log_tau"; ort = "h"; pal = "Set2"; sigma = .2
 
@@ -381,12 +631,30 @@ fig, ax = plt.subplots(figsize=(5,5))
 pt.RainCloud(x = dx, y = dy, data = ofc_means, palette = pal, bw = sigma,
                  width_viol = .6, ax = ax, orient = ort,point_size=1)
 
+# Calculate number of obs per group & median to position labels
+medians = ofc_means.groupby(['species'])['log_tau'].median().values
+nobs = ofc_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
+
+myorder = [1,2,0,3]
+nobs = [nobs[i] for i in myorder]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+   ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
+
 plt.xlim((1,3))
 
 plt.title('OFC')
 plt.show() 
 
-# Striatum
+#%% Striatum
 
 dx = "species"; dy = "log_tau"; ort = "h"; pal = "Set2"; sigma = .2
 
@@ -394,6 +662,24 @@ fig, ax = plt.subplots(figsize=(5,5))
 
 pt.RainCloud(x = dx, y = dy, data = striatum_means, palette = pal, bw = sigma,
                  width_viol = .6, ax = ax, orient = ort,point_size=1)
+
+# Calculate number of obs per group & median to position labels
+medians = striatum_means.groupby(['species'])['log_tau'].median().values
+nobs = striatum_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
+
+myorder = [3,2,0,1]
+nobs = [nobs[i] for i in myorder]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+   ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
 
 plt.xlim((1,3))
 
@@ -666,20 +952,14 @@ for dataset in data.dataset.unique():
             
             se_tau = sd_tau / np.sqrt(len(taus))
             
-            variability_data.append((dataset,species,brain_area,unit_n,mean_tau,sd_tau,se_tau))
+            frs = this_unit['fr']
             
-variability = pd.DataFrame(variability_data,columns=['dataset','species','brain_area','unit','mean_tau','sd_tau','se_tau'])
+            mean_fr = np.mean(frs)
+            
+            variability_data.append((dataset,species,brain_area,unit_n,mean_tau,sd_tau,se_tau,mean_fr))
+            
+variability = pd.DataFrame(variability_data,columns=['dataset','species','brain_area','unit','mean_tau','sd_tau','se_tau','mean_fr'])
 
-
-#%% Variability plot
-
-plt.figure(figsize=(8,6))
-
-sns.catplot(data=variability,x='brain_area',y='mean_tau',col='species',col_wrap=2,ci='sd',kind='violin')
-
-plt.xticks(rotation=45)
-
-plt.show()
 
 #%% 
 
@@ -690,6 +970,7 @@ mpfc_means2 = mpfc_means.assign(brain_region = 'mpfc')
 ofc_means2 = ofc_means.assign(brain_region = 'ofc')
 
 brain_region_data = pd.concat((acc_means2,amyg_means2,hc_means2,mpfc_means2,ofc_means2))
+
 
 #%% Violin plots of tau
 
@@ -805,6 +1086,13 @@ print(anova_lm(res_nofr,res))
 
 #%% n successful iterations by species
 
-sns.catplot(data=all_means,x='dataset',y='n',col='species',col_wrap=2,ci='sd')
+sns.catplot(data=all_means,x='dataset',y='n',col='species',col_wrap=2,ci='sd',kind='violin')
 
+plt.show()
+
+#%%
+
+sns.set_theme()
+
+sns.catplot(data=brain_region_data,x='brain_region',y='tau',col='species',col_wrap=2,kind='violin',scale='count',bw=0.15)
 plt.show()
