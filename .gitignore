@@ -143,4 +143,3 @@ dmypy.json
 *.Rhistory
 *.mat
 *.docx
-1000iter results/split_halves.py
