@@ -1,7 +1,5 @@
 #%%
- 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 """
 Created on Tue Jul 27 10:33:29 2021
 
@@ -181,13 +179,10 @@ for brain_region in halves.brain_region.unique():
 
             print('p = ',ttest_ind(cat1.tau.values, cat2.tau.values)[1])
             
-#%% Linear modelling to be fancy
+# %% Linear modelling to be fancy
 
 model = smf.ols(formula='tau ~ species + brain_region + half',data=halves)
 
 res = model.fit()
 
 print(res.summary())
-
-
-# %%
