@@ -1,7 +1,7 @@
 #%%
 
 import sys
-sys.path.append('/Users/zachz/Documents/abcTau/abcTau')
+sys.path.append('/Users/zachz/Documents/abcTau')
 from scipy import stats
 import numpy as np
 import warnings
