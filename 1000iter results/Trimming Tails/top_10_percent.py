@@ -12,7 +12,7 @@ plt.style.use('seaborn')
 
 #%% Load in data, filter, plot before trimming
 
-raw_data = pd.read_csv('F:/timescales_analysis/1000iter results/fixed_single_unit.csv')
+raw_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/fixed_single_unit.csv')
 
 listofspecies = ['mouse','rat','monkey','human']
 
