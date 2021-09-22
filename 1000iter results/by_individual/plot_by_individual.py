@@ -19,6 +19,13 @@ for dataset in individual_data.dataset.unique():
     
     this_dataset = individual_data[individual_data.dataset == dataset]
     
+    individuals = this_dataset.individual.unique()
+    individual_key = range(len(individuals))
+    
+    zipped = zip(individuals,individual_key)
+    
+    individual_dict = dict(zipped)
+    
     for brain_area in this_dataset.brain_area.unique():
         
         these_data = this_dataset[this_dataset.brain_area == brain_area]
@@ -53,6 +60,8 @@ for dataset in individual_data.dataset.unique():
                 
                 individual = this_unit.iloc[0]['individual']
                 
+                individual = individual_dict.get(individual)
+                
                 try:
                 
                     all_means.append((dataset,species,brain_area,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n,individual))
@@ -72,12 +81,16 @@ all_means['species'] = pd.Categorical(all_means['species'], categories=listofspe
 
 #%%
 
-sns.catplot(data=all_means[all_means.dataset=='steinmetz'],x='unit',y='tau',hue='individual',col='brain_area',kind='bar',col_wrap=5)
+sns.catplot(data=all_means[all_means.dataset=='steinmetz'],x='individual',y='tau',col='brain_area',kind='violin',col_wrap=5)
+
+plt.xticks([])
 
 plt.show()
 # %%
 
-sns.catplot(data=individual_data[individual_data.dataset=='chandravadia'],x='individual',y='tau',col='brain_area',kind='bar')
+sns.catplot(data=individual_data[individual_data.dataset=='chandravadia'],x='individual',y='tau',col='brain_area',kind='violin')
+
+plt.xticks([])
 
 plt.show()
 # %%
