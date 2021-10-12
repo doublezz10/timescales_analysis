@@ -1,6 +1,8 @@
 # Image files
 *.png
 *.ai
+*.pdf
+*.png
 
 # Spyder
 .spyproject/
@@ -35,6 +37,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.Rdata
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
