@@ -1,7 +1,7 @@
 #%%
 
 import sys
-sys.path.append('/Users/zachz/Documents/abcTau')
+sys.path.append('/Users/zachz/Documents/abcTau/')
 from scipy import stats
 import numpy as np
 import warnings
@@ -211,23 +211,38 @@ plt.show()
 
 # %% Do it again
 
+tau_diffs = []
+
 for tau in range(10,1010,50):
 
-    one_fit_tau, one_fit_r2, iter_taus, iter_r2s = compare_fits_oneTauOU([tau],1,1)   
+    one_fit_tau, one_fit_r2, iter_taus, iter_r2s = compare_fits_oneTauOU([tau],1,1) 
+    
+    tau_diffs.append((tau - np.mean(iter_taus), tau - one_fit_tau))
 
-    plt.hist(iter_taus,density=True)
+    # plt.hist(iter_taus,density=True)
 
-    plt.axvline(np.mean(iter_taus),label="mean of 1000iter (R$^2$ = %1.2f)" %np.mean(iter_r2s),color='red',linestyle='--',alpha=0.7)
-    plt.axvline(one_fit_tau,label="one fit (R$^2$ = %1.2f)" %one_fit_r2,color='green',linestyle='--',alpha=0.7)
-    plt.axvline(tau,label='true tau',color='yellow',linestyle='--',alpha=0.7)
+    # plt.axvline(np.mean(iter_taus),label="mean of 1000iter (R$^2$ = %1.2f)" %np.mean(iter_r2s),color='red',linestyle='--',alpha=0.7)
+    # plt.axvline(one_fit_tau,label="one fit (R$^2$ = %1.2f)" %one_fit_r2,color='green',linestyle='--',alpha=0.7)
+    # plt.axvline(tau,label='true tau',color='yellow',linestyle='--',alpha=0.7)
 
-    plt.xlabel('timescale (ms)')
-    plt.ylabel('probability')
+    # plt.xlabel('timescale (ms)')
+    # plt.ylabel('probability')
 
-    plt.title('1000 iterative fitting')
+    # plt.title('1000 iterative fitting')
 
-    plt.legend()
+    # plt.legend()
 
-    plt.show()
+    # plt.show()
 
 # %%
+
+plt.figure(figsize=(11,8.5))
+
+for iter in range(len(tau_diffs)):
+    
+    plt.scatter(tau_diffs[iter,0],tau_diffs[iter,1])
+    
+plt.xlabel('error of iterative timescale')
+plt.ylabel('error of one-fit timescale')
+    
+plt.show()

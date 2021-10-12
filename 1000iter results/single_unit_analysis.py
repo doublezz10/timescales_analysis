@@ -401,9 +401,31 @@ amyg_means['brain_region'] = 'amygdala'
 hc_means['brain_region'] = 'hippocampus'
 mpfc_means['brain_region'] = 'mpfc'
 ofc_means['brain_region'] = 'ofc'
-striatum_means['brain_region'] = 'striatum'
 
-all_means = pd.concat((acc_means,amyg_means,hc_means,mpfc_means,ofc_means,striatum_means))
+all_means = pd.concat((acc_means,amyg_means,hc_means,mpfc_means,ofc_means))
+
+#%%
+
+import matplotlib
+
+no_rats = all_means[all_means.species != 'rat']
+
+norats = ['mouse','monkey','human']
+
+no_rats['species2'] = pd.Categorical(no_rats['species'], categories = norats , ordered = True)
+
+no_rats = no_rats.reset_index()
+
+plt.figure(figsize=(11,8.5))
+
+# matplotlib.rcParams.update({'font.size': 12})
+
+sns.lineplot(data=no_rats,x='brain_region',y='tau',hue='species2',ci=95)
+
+plt.xlabel('brain region')
+plt.ylabel('population timescale (ms)')
+
+plt.show()
 
 #%% Plot of n units per dataset
 

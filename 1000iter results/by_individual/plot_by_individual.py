@@ -6,6 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+plt.style.use('seaborn')
+
 individual_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/by_individual/by_individual.csv')
 listofspecies = ['mouse','rat','monkey','human']
 
@@ -74,12 +76,22 @@ all_means = pd.DataFrame(all_means,columns=['dataset','species','brain_area','un
 
 all_means['species'] = pd.Categorical(all_means['species'], categories=listofspecies, ordered=True)
 
-# get mean across iterations
+acc = all_means[(all_means.brain_area == 'acc') | (all_means.brain_area == 'dACC') | (all_means.brain_area == 'aca') | (all_means.brain_area == 'mcc')]
 
-# then plot separated by individual (color?)
-# or each graph is a dataset, col is brain_area, and x = individual
+amyg = all_means[(all_means.brain_area == 'amygdala') | (all_means.brain_area == 'central') | (all_means.brain_area == 'bla')]
+
+hc = all_means[(all_means.brain_area == 'hc') | (all_means.brain_area == 'ca1') | (all_means.brain_area == 'ca2') | (all_means.brain_area == 'ca3') | (all_means.brain_area == 'dg')]
+
+mpfc = all_means[(all_means.brain_area == 'mpfc') | (all_means.brain_area == 'pl') | (all_means.brain_area == 'ila') | (all_means.brain_area == 'scACC')]
+
+ofc = all_means[(all_means.brain_area == 'ofc') | (all_means.brain_area == 'orb')]
+
+brain_region = pd.concat((acc,amyg,hc,mpfc,ofc))
+        
 
 #%%
+
+plt.figure(figsize=(11,8.5))
 
 sns.catplot(data=all_means[all_means.dataset=='steinmetz'],x='individual',y='tau',col='brain_area',kind='violin',col_wrap=5)
 
@@ -87,6 +99,8 @@ plt.xticks([])
 
 plt.show()
 # %%
+
+plt.figure(figsize=(11,8.5))
 
 sns.catplot(data=individual_data[individual_data.dataset=='chandravadia'],x='individual',y='tau',col='brain_area',kind='violin')
 
