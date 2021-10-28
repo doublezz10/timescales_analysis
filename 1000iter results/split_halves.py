@@ -149,7 +149,9 @@ for brain_region in halves.brain_region.unique():
         pass
 
     else:
-
+        
+        plt.figure(figsize=(11,8.5))
+        
         sns.catplot(data=halves.loc[(halves['brain_region']==brain_region)],x='half',y='tau',col='species',kind='boxen')
 
         plt.suptitle(brain_region)

@@ -60,10 +60,12 @@ plt.figure(figsize=(11,8.5))
 
 # matplotlib.rcParams.update({'font.size': 12})
 
-sns.lineplot(data=no_rats,x='brain_region',y='tau',hue='species',ci=95)
+sns.lineplot(data=no_rats,x='brain_region',y='tau',hue='species',ci=95,markers=True)
 
 plt.xlabel('brain region')
 plt.ylabel('population timescale (ms)')
+
+plt.ylim((100,550))
 
 plt.show()
 
