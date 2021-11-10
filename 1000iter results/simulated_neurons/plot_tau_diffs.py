@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 tau_diffs = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/simulated_neurons/one_vs_iter.csv')
+tau_diffs = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/simulated_neurons/tau_diffs.csv')
 
 plt.style.use('seaborn')
 

@@ -317,7 +317,7 @@ sns.lineplot(data=no_rats,x='brain_region',y='tau',hue='species',ci=95,markers=T
 plt.xlabel('brain region')
 plt.ylabel('single-unit timescale (ms)')
 
-plt.ylim((0,550))
+plt.ylim((100,550))
 
 plt.show()
 #%% GLM

@@ -88,13 +88,7 @@ sns.scatterplot(data=mean_no_rats,x='brain_region',y='mean_tau',hue='species',le
 plt.xlabel('brain region')
 plt.ylabel('population timescale (ms)')
 
-plt.ylim((0,550))
-
-plt.show()
-
-#%%
-
-sns.catplot(data=no_rats,x='brain_region',y='tau',col='species',hue='dataset',kind='box')
+plt.ylim((100,550))
 
 plt.show()
 

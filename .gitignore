@@ -3,6 +3,7 @@
 *.ai
 *.pdf
 *.png
+*.svg
 
 # Spyder
 .spyproject/
