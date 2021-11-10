@@ -200,90 +200,20 @@ plt.show()
 #%% Prettier way to do it
 plt.figure(figsize=(11,8.5))
 
-sns.lmplot(data=brain_region_data,x='zach_tau',y='fred_tau',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
+f = sns.lmplot(data=brain_region_data,x='zach_tau',y='fred_tau',hue='dataset',col='brain_region',col_wrap=3,ci=95,scatter_kws={'s':5, 'alpha': 0.5},n_boot=5)
+
+f = (f.set_axis_labels("iter_tau", "isi_tau"))
 
 plt.show()
 
-#%% Do correlation plots
+#%% Test
+import statsmodels.formula.api as smf
 
-plt.figure(figsize=(11,8.5))
-sns.lmplot(data=acc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
-sns.scatterplot(data=acc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend=False)
-plt.title('ACC')
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-plt.legend(loc='upper left')
-plt.xlabel('Zach tau (ms)')
-plt.ylabel('Fred tau (ms)')
-plt.show()
+model = smf.glm(formula='fred_tau ~ zach_tau',data=brain_region_data)
 
-plt.figure(figsize=(11,8.5))
-sns.lmplot(data=amyg,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
-sns.scatterplot(data=amyg,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend=False)
-plt.title('Amygdala')
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-plt.legend(loc='upper left')
-plt.xlabel('Zach tau (ms)')
-plt.ylabel('Fred tau (ms)')
-plt.show()
+res = model.fit()
 
-plt.figure(figsize=(11,8.5))
-sns.lmplot(data=hc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
-sns.scatterplot(data=hc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend=False)
-plt.title('Hippocampus')
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-plt.legend(loc='upper left')
-plt.xlabel('Zach tau (ms)')
-plt.ylabel('Fred tau (ms)')
-plt.show()
+print(res.summary())
+# %%
 
-plt.figure(figsize=(11,8.5))
-sns.lmplot(data=mpfc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
-sns.scatterplot(data=mpfc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend=False)
-plt.title('mPFC')
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-plt.legend(loc='upper left')
-plt.xlabel('Zach tau (ms)')
-plt.ylabel('Fred tau (ms)')
-plt.show()
-
-plt.figure(figsize=(11,8.5))
-sns.lmplot(data=ofc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
-sns.scatterplot(data=ofc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend=False)
-plt.title('OFC')
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-plt.legend(loc='upper left')
-plt.xlabel('Zach tau (ms)')
-plt.ylabel('Fred tau (ms)')
-plt.show()
-
-#%% Is tau diff related to anything
-
-sns.lmplot(data=brain_region_data,x='zach_r2',y='tau_diff',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-sns.lmplot(data=brain_region_data,x='fred_r2',y='tau_diff',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-sns.lmplot(data=brain_region_data,x='zach_r2',y='fred_r2',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-sns.lmplot(data=brain_region_data,x='zach_tau',y='tau_diff',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-sns.lmplot(data=brain_region_data,x='fred_tau',y='tau_diff',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-#%%
-
-sns.lmplot(data=brain_region_data,x='zach_fr',y='zach_r2',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-sns.lmplot(data=brain_region_data,x='fred_fr',y='fred_r2',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
+# %%

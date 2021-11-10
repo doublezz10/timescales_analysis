@@ -144,28 +144,58 @@ halves = halves[halves.species != 'rat']
 
 #%%
 
-for brain_region in halves.brain_region.unique():
+fig = plt.figure(figsize=(11,8.5))
 
-    if brain_region == 'striatum':
+ax1 = fig.add_subplot(2,3,1)
 
-        pass
-    
-    elif brain_region == 'acc':
-        
-        plt.figure(figsize=(11/4,8.5/4))
-        
-        sns.catplot(data=halves.loc[(halves['brain_region']==brain_region)],x='species',y='tau',col='brain_region',kind='violin',hue='half',split=True)
-        
-        plt.show()
+f = sns.violinplot(ax = ax1, data=halves.loc[(halves['brain_region']=='acc')],x='species',y='tau',col='brain_region',kind='violin',hue='half',split=True,inner='quartile',cut=0)
 
-    else:
-        
-        plt.figure(figsize=(11/4,8.5/4))
-        
-        sns.catplot(data=halves.loc[(halves['brain_region']==brain_region)],x='species',y='tau',col='brain_region',kind='violin',hue='half',split=True,legend=None)
-        
-        plt.show()
+f.set_title('ACC')
 
+f.legend([],[], frameon=False)
+
+f.set_xlabel('')
+
+ax2 = fig.add_subplot(2,3,2)
+
+f = sns.violinplot(ax = ax2, data=halves.loc[(halves['brain_region']=='amygdala')],x='species',y='tau',col='brain_region',kind='violin',hue='half',split=True,legend=False,inner='quartile',cut=0)
+
+f.set_title('Amygdala')
+
+f.legend([],[], frameon=False)
+
+f.set_xlabel('')
+f.set_ylabel('')
+
+ax3 = fig.add_subplot(2,3,3)
+
+f = sns.violinplot(ax = ax3, data=halves.loc[(halves['brain_region']=='hippocampus')],x='species',y='tau',col='brain_region',kind='violin',hue='half',split=True,legend=False,inner='quartile',cut=0)
+
+f.set_title('Hippocampus')
+
+f.legend([],[], frameon=False)
+
+f.set_ylabel('')
+
+ax4 = fig.add_subplot(2,3,4)
+
+f = sns.violinplot(ax = ax4, data=halves.loc[(halves['brain_region']=='mpfc')],x='species',y='tau',col='brain_region',kind='violin',hue='half',split=True,legend=False,inner='quartile',cut=0)
+
+f.set_title('mPFC')
+
+f.legend([],[], frameon=False)
+
+ax5 = fig.add_subplot(2,3,5)
+
+f = sns.violinplot(ax = ax5, data=halves.loc[(halves['brain_region']=='ofc')],x='species',y='tau',col='brain_region',kind='violin',hue='half',split=True,legend=False,inner='quartile',cut=0)
+
+f.set_title('OFC')
+
+f.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.,title='Half')
+
+f.set_ylabel('')
+
+plt.tight_layout()
 # %% t tests for each brain area, separated by species
 
 from scipy.stats import ttest_ind
@@ -191,8 +221,10 @@ for brain_region in halves.brain_region.unique():
             
 # %% Linear modelling to be fancy
 
-model = smf.ols(formula='tau ~ species + brain_region + half',data=halves)
+model = smf.glm(formula='tau ~ species + brain_region + half',data=halves)
 
 res = model.fit()
 
 print(res.summary())
+
+# %%

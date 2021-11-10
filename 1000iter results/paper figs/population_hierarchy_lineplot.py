@@ -56,15 +56,62 @@ norats = ['mouse','monkey','human']
 
 no_rats['species'] = pd.Categorical(no_rats['species'], categories = norats , ordered = True)
 
+mean_no_rats = []
+
+for dataset in no_rats.dataset.unique():
+    
+    this_dataset = no_rats[no_rats.dataset == dataset]
+    
+    for brain_region in this_dataset.brain_region.unique():
+        
+        this_region = this_dataset[this_dataset.brain_region == brain_region]
+        
+        species = this_region.iloc[0].species
+        
+        mean_tau = np.mean(this_region['tau'])
+        
+        mean_no_rats.append((species,dataset,brain_region,mean_tau))
+        
+mean_no_rats = pd.DataFrame(mean_no_rats,columns=['species','dataset','brain_region','mean_tau'])
+mean_no_rats['species'] = pd.Categorical(mean_no_rats['species'], categories = norats , ordered = True)
+
+#%%
+
 plt.figure(figsize=(11,8.5))
 
 # matplotlib.rcParams.update({'font.size': 12})
 
-sns.lineplot(data=no_rats,x='brain_region',y='tau',hue='species',ci=95)
+sns.lineplot(data=no_rats,x='brain_region',y='tau',hue='species')
+
+sns.scatterplot(data=mean_no_rats,x='brain_region',y='mean_tau',hue='species',legend=False)
 
 plt.xlabel('brain region')
 plt.ylabel('population timescale (ms)')
 
+plt.ylim((0,550))
+
 plt.show()
 
 #%%
+
+sns.catplot(data=no_rats,x='brain_region',y='tau',col='species',hue='dataset',kind='box')
+
+plt.show()
+
+#%% GLM
+
+model = smf.glm(formula='tau ~ species + brain_region + (species * brain_region)',data=no_rats)
+
+res = model.fit()
+
+print(res.summary())
+
+#%%
+
+model2 = smf.glm(formula='tau ~ species + brain_region + fr', data=no_rats)
+
+res2 = model2.fit()
+
+print(res2.summary())
+
+# %%

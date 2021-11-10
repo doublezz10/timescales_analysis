@@ -1,4 +1,4 @@
-#%% Imports
+#%%
 
 import numpy as np
 import pandas as pd
@@ -15,13 +15,17 @@ plt.style.use('seaborn')
 
 raw_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/fixed_single_unit.csv')
 
-listofspecies = ['mouse','rat','monkey','human']
+listofspecies = ['mouse','monkey','human']
 
 raw_data['species'] = pd.Categorical(raw_data['species'], categories = listofspecies , ordered = True)
 
 data = raw_data[(raw_data.tau >= 10) & (raw_data.tau <= 1000)]
 
 data = data[(data.r2 >= 0.5)]
+
+data = data[data.species != 'rat']
+
+data['species'] = pd.Categorical(data['species'], categories = listofspecies , ordered = True)
 
 print('Proportion of units surviving filtering:', len(data)/len(raw_data))
 
@@ -55,11 +59,7 @@ ofc = data[(data.brain_area == 'ofc') | (data.brain_area == 'orb')]
            
 striatum = data[(data.brain_area == 'vStriatum') | (data.brain_area == 'putamen') | (data.brain_area == 'caudate')]
 
-brain_regions = pd.concat((acc,amyg,hc,mpfc,ofc,striatum))
-
-#%% Get mean values over all iterations by brain region
-
-# ACC
+#%% ACC
 
 acc_means = []
 
@@ -283,66 +283,179 @@ ofc_means = pd.DataFrame(ofc_means,columns=['dataset','species','unit','tau','sd
 
 ofc_means['species'] = pd.Categorical(ofc_means['species'], categories=listofspecies, ordered=True)
 
-acc_means['brain_region'] = 'ACC'
-amyg_means['brain_region'] = 'Amygdala'
-hc_means['brain_region'] = 'Hippocampus'
-mpfc_means['brain_region'] = 'mPFC'
-ofc_means['brain_region'] = 'OFC'
-
-all_means = pd.concat((acc_means,amyg_means,hc_means,mpfc_means,ofc_means))
-
 #%%
 
-import matplotlib
+acc_means['brain_region'] = 'acc'
+amyg_means['brain_region'] = 'amygdala'
+hc_means['brain_region'] = 'hippocampus'
+mpfc_means['brain_region'] = 'mpfc'
+ofc_means['brain_region'] = 'ofc'
 
-no_rats = all_means[all_means.species != 'rat']
+#%% Raincloud plots by brain area - mean tau
 
-norats = ['mouse','monkey','human']
+# ACC
 
-no_rats['species'] = pd.Categorical(no_rats['species'], categories = norats , ordered = True)
+dx = "species"; dy = "log_tau"; ort = "h"; sigma = .2
 
-brain_regions = ['Hippocampus','Amygdala','OFC','mPFC','ACC']
+fig, ax = plt.subplots(figsize=(5,5))
 
-no_rats['brain_region'] = pd.Categorical(no_rats['brain_region'], categories = brain_regions , ordered = True)
+pt.RainCloud(x = dx, y = dy, data = acc_means, bw = sigma,
+                 width_viol = .6, ax = ax, orient = ort,point_size=1)
 
+# Calculate number of obs per group & median to position labels
+medians = acc_means.groupby(['species'])['log_tau'].median().values
+nobs = acc_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
 
-no_rats = no_rats.reset_index()
+myorder = [0,1,2]
+nobs = [nobs[i] for i in myorder]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+   ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
 
-plt.figure(figsize=(11,8.5))
+plt.xlim((1,3))
 
-# matplotlib.rcParams.update({'font.size': 12})
+plt.title('ACC')
+plt.show() 
 
-sns.lineplot(data=no_rats,x='brain_region',y='tau',hue='species',ci=95,markers=True,legend=True)
+#%% Amygdala
 
-plt.xlabel('brain region')
-plt.ylabel('single-unit timescale (ms)')
+dx = "species"; dy = "log_tau"; ort = "h"; sigma = .2
 
-plt.ylim((0,550))
+fig, ax = plt.subplots(figsize=(5,5))
 
-plt.show()
-#%% GLM
+pt.RainCloud(x = dx, y = dy, data = amyg_means, bw = sigma,
+                 width_viol = .6, ax = ax, orient = ort,point_size=1)
 
-model = smf.glm(formula='tau ~ species + brain_region + (species * brain_region)',data=no_rats)
+# Calculate number of obs per group & median to position labels
+medians = amyg_means.groupby(['species'])['log_tau'].median().values
+nobs = amyg_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
 
-res = model.fit()
+myorder = [2,0,1]
+nobs = [nobs[i] for i in myorder]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+    ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
 
-print(res.summary())
+plt.xlim((1,3))
 
-#%%
+plt.title('Amygdala')
+plt.show() 
 
-model = smf.mixedlm("tau", groups=("species",'brain_region'), data=no_rats)
-res = model.fit()
+#%% Hippocampus
 
-print(res.summary())
+dx = "species"; dy = "log_tau"; ort = "h"; sigma = .2
 
-#%%
-model2 = smf.glm(formula='tau ~ species + brain_region + mean_fr', data=no_rats)
+fig, ax = plt.subplots(figsize=(5,5))
 
-res2 = model2.fit()
+pt.RainCloud(x = dx, y = dy, data = hc_means, bw = sigma,
+                 width_viol = .6, ax = ax, orient = ort,point_size=1)
 
-print(res2.summary())
+# Calculate number of obs per group & median to position labels
 
-#%%
-print(anova_lm(res2,res))
+myorder = [0,1,2]
+nobs = [nobs[i] for i in myorder]
+
+medians = hc_means.groupby(['species'])['log_tau'].median().values
+nobs = hc_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+   ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
+
+plt.xlim((1,3))
+
+plt.title('Hippocampus')
+plt.show() 
+
+#%% mPFC
+
+dx = "species"; dy = "log_tau"; ort = "h"; sigma = .2
+
+fig, ax = plt.subplots(figsize=(5,5))
+
+pt.RainCloud(x = dx, y = dy, data = mpfc_means, bw = sigma,
+                 width_viol = .6, ax = ax, orient = ort,point_size=1)
+
+# Calculate number of obs per group & median to position labels
+
+myorder = [0,1]
+nobs = [nobs[i] for i in myorder]
+
+medians = mpfc_means.groupby(['species'])['log_tau'].median().values
+nobs = mpfc_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
+
+myorder = [1,0,2]
+nobs = [nobs[i] for i in myorder]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+   ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
+
+plt.xlim((1,3))
+
+plt.title('mPFC')
+plt.show() 
+
+#%% OFC
+
+dx = "species"; dy = "log_tau"; ort = "h"; sigma = .2
+
+fig, ax = plt.subplots(figsize=(5,5))
+
+pt.RainCloud(x = dx, y = dy, data = ofc_means, bw = sigma,
+                 width_viol = .6, ax = ax, orient = ort,point_size=1)
+
+# Calculate number of obs per group & median to position labels
+medians = ofc_means.groupby(['species'])['log_tau'].median().values
+nobs = ofc_means['species'].value_counts().values
+nobs = [str(x) for x in nobs.tolist()]
+nobs = ["n: " + i for i in nobs]
+
+myorder = [1,0,2]
+nobs = [nobs[i] for i in myorder]
+ 
+# Add text to the figure
+pos = range(len(nobs))
+for tick, label in zip(pos, ax.get_xticklabels()):
+   ax.text(medians[tick], pos[tick] - 0.22, nobs[tick],
+            horizontalalignment='center',
+            size='small',
+            color='black',
+            weight='semibold')
+
+plt.xlim((1,3))
+
+plt.title('OFC')
+plt.show() 
 
 # %%

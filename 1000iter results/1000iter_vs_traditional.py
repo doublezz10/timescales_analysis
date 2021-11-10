@@ -25,86 +25,162 @@ data = raw_data[(raw_data.tau >= 10) & (raw_data.tau <= 1000)]
 
 data = data[(data.r2 >= 0.5)]
 
+all_means = []
+
+for dataset in data.dataset.unique():
+    
+    this_dataset = data[data.dataset == dataset]
+    
+    for brain_area in this_dataset.brain_area.unique():
+        
+        these_data = this_dataset[this_dataset.brain_area == brain_area]
+
+        for unit_n in these_data.unit.unique():
+    
+            this_unit = these_data[these_data.unit == unit_n]
+            
+            species = this_unit.iloc[0]['species']
+            
+            mean_tau = np.mean(this_unit['tau'])
+            
+            sd_tau = np.std(this_unit['tau'])
+            
+            mean_r2 = np.mean(this_unit['r2'])
+            
+            sd_r2 = np.std(this_unit['r2'])
+            
+            mean_fr = np.mean(this_unit['fr'])
+            
+            sd_fr = np.std(this_unit['fr'])
+            
+            n = len(this_unit)
+            
+            # fixed python numbering here - first unit is index 1 not 0
+            
+            all_means.append((dataset,species,brain_area,unit_n + 1,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+    
+all_means = pd.DataFrame(all_means,columns=['dataset','species','brain_area','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
+
+all_means['species'] = pd.Categorical(all_means['species'], categories=listofspecies, ordered=True)
+
+del dataset, brain_area, this_dataset, these_data, this_unit, species, unit_n
+del mean_tau, sd_tau, mean_r2, sd_r2, mean_fr, sd_fr, n
+
+
 #%% Load in traditional data
 
-old_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/GLM - first attempts/zach_grouped.csv',index_col=0)
+old_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/results.csv')
 
-meg = old_data[old_data.dataset == 'meg']
+# Loop through and pull out matching taus
 
-meg_matches = []
+matching_units = []
 
-for unit in range(len(meg)):
+for dataset in all_means.dataset.unique():
     
-    brain_area = meg.iloc[unit].brain_area
+    this_dataset = all_means[all_means.dataset == dataset]
     
-    if brain_area == 'amyg':
+    one_fit_dataset = old_data[old_data.dataset == dataset]
+    
+    for brain_area in this_dataset.brain_area.unique():
         
-        brain_area = 'amygdala'
+        these_data = this_dataset[this_dataset.brain_area == brain_area]
         
-    elif brain_area == 'scacc':
-        
-        brain_area = 'scACC'
-        
-    elif brain_area == 'vs':
-        
-        brain_area = 'vStriatum'
-    
-    unit_id = meg.iloc[unit].unit_id
-    
-    matches = data[(data.dataset == 'meg') & (data.brain_area == brain_area) & (data.unit == unit_id)]
-    
-    mean_tau = np.mean(matches['tau'])
-    
-    trad_tau = meg.iloc[unit]['tau']
-    
-    meg_matches.append((unit_id,brain_area,mean_tau,trad_tau))
-    
-meg_match = pd.DataFrame(meg_matches,columns=['unit','brain_area','iter_tau','trad_tau'])
+        one_fit_these_data = one_fit_dataset[one_fit_dataset.brain_area == brain_area]
 
-#%%
+        for unit_n in these_data.unit.unique():
+    
+            this_unit = these_data[these_data.unit == unit_n]
+            
+            one_fit_unit = one_fit_these_data[one_fit_these_data.unit == unit_n]
+            
+            species = this_unit.iloc[0]['species']
+            
+            if len(one_fit_unit) == 0:
+                
+                pass
+            
+            elif one_fit_unit['r2'].values[0] <= 0.5:
+                
+                pass
+            
+            elif one_fit_unit['tau'].values[0] >= 1000:
+            
+                pass
+            
+            elif one_fit_unit['tau'].values[0] <= 10:
+                
+                pass
+            
+            else:
+                
+                zach_tau = this_unit['tau'].values[0]
+                zach_tau_sd = this_unit['sd_tau'].values[0]
+                zach_fr = this_unit['mean_fr'].values[0]
+                zach_n = this_unit['n'].values[0]
+                zach_r2 = this_unit['mean_r2'].values[0]
+                
+                one_fit_tau = one_fit_unit['tau'].values[0]
+                one_fit_fr = one_fit_unit['fr'].values[0]
+                one_fit_r2 = one_fit_unit['r2'].values[0]
+                
+                tau_diff = zach_tau - one_fit_tau
+                
+                if dataset == 'meg':
+                    
+                    dataset = 'young/mosher'
+                
+                matching_units.append((dataset,species,brain_area,unit_n,zach_tau,zach_tau_sd,zach_fr,zach_n,zach_r2,one_fit_tau,one_fit_fr,one_fit_r2,tau_diff))
+            
+matching_units = pd.DataFrame(matching_units,columns=['dataset','species','brain_area','unit','iter_tau','zach_tau_sd','zach_fr','zach_n','zach_r2','one_fit_tau','one_fit_fr','one_fit_r2','tau_diff'])
 
-sns.lmplot(data=meg_match,x='iter_tau',y='trad_tau',hue='brain_area',legend=True,ci=False,scatter_kws={'s': 15, 'alpha': 0.5})
+listofspecies = ['mouse','monkey','human']
 
-plt.plot(range(1000),range(1000),linestyle='--',label='identity',color='black')
+matching_units['species'] = pd.Categorical(matching_units['species'], categories = listofspecies , ordered = True)
 
-plt.xlabel('trial-agnostic tau')
-plt.ylabel('fixation only tau')
+#%% Separate by brain area
 
-plt.title('Megs data - monkey')
+acc = matching_units[(matching_units.brain_area == 'acc') | (matching_units.brain_area == 'dACC') | (matching_units.brain_area == 'aca') | (matching_units.brain_area == 'mcc')]
+
+amyg = matching_units[(matching_units.brain_area == 'amygdala') | (matching_units.brain_area == 'central') | (matching_units.brain_area == 'bla')]
+
+hc = matching_units[(matching_units.brain_area == 'hc') | (matching_units.brain_area == 'ca1') | (matching_units.brain_area == 'ca2') | (matching_units.brain_area == 'ca3') | (matching_units.brain_area == 'dg')]
+
+mpfc = matching_units[(matching_units.brain_area == 'mpfc') | (matching_units.brain_area == 'pl') | (matching_units.brain_area == 'ila') | (matching_units.brain_area == 'scACC')]
+
+ofc = matching_units[(matching_units.brain_area == 'ofc') | (matching_units.brain_area == 'orb')]
+
+#%% New dataframe with all brain regions stacked
+
+acc2 = acc.assign(brain_region='ACC')
+amyg2 = amyg.assign(brain_region='Amygdala')
+hc2 = hc.assign(brain_region='Hippocampus')
+mpfc2 = mpfc.assign(brain_region='mPFC')
+ofc2 = ofc.assign(brain_region='OFC')
+
+brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2))
+
+#%% one big subplot
+
+plt.figure(figsize=(11,8.5))
+
+g = sns.FacetGrid(data=brain_region_data,hue='dataset',col='brain_region',col_wrap=3,legend_out=True)
+g.map_dataframe(sns.regplot,x='iter_tau',y='one_fit_tau',scatter_kws={'s':5, 'alpha': 0.5},ci=None)
+
+for a in g.axes:
+    a.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
+    a.set_xlabel('iter_tau')
+    a.set_ylabel('fix_tau')
+    a.legend()
+plt.tight_layout()
 
 plt.show()
 
-#%%
+#%% Prettier way to do it
+plt.figure(figsize=(11,8.5))
 
-stein = old_data[old_data.dataset == 'steinmetz']
+sns.lmplot(data=brain_region_data,x='iter_tau',y='one_fit_tau',hue='dataset',ci=None,scatter_kws={'s':5, 'alpha': 0.5})
 
-stein_matches = []
-
-for unit in range(len(stein)):
-    
-    brain_area = stein.iloc[unit].brain_area
-    
-    unit_id = stein.iloc[unit].unit_id
-    
-    matches = data[(data.dataset == 'steinmetz') & (data.brain_area == brain_area) & (data.unit == unit_id)]
-    
-    mean_tau = np.mean(matches['tau'])
-    
-    trad_tau = stein.iloc[unit]['tau']
-    
-    stein_matches.append((unit_id,brain_area,mean_tau,trad_tau))
-    
-stein_match = pd.DataFrame(stein_matches,columns=['unit','brain_area','iter_tau','trad_tau'])
-
-#%%
-
-sns.lmplot(data=stein_match,x='iter_tau',y='trad_tau',hue='brain_area',legend=True,ci=False,scatter_kws={'s': 15, 'alpha': 0.5})
-
-plt.plot(range(1000),range(1000),linestyle='--',label='identity',color='black')
-
-plt.xlabel('trial-agnostic tau')
-plt.ylabel('fixation only tau')
-
-plt.title('Steinmetz data - mouse')
+plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
 
 plt.show()
+# %%

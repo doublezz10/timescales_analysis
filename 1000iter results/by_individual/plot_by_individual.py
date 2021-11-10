@@ -13,7 +13,7 @@ listofspecies = ['mouse','rat','monkey','human']
 
 individual_data['species'] = pd.Categorical(individual_data['species'], categories = listofspecies , ordered = True)
 
-#
+#%%
 
 all_means = []
 
@@ -91,20 +91,42 @@ brain_region = pd.concat((acc,amyg,hc,mpfc,ofc))
 
 #%%
 
+import statsmodels.formula.api as smf
+
 plt.figure(figsize=(11,8.5))
 
-sns.catplot(data=all_means[all_means.dataset=='steinmetz'],x='individual',y='tau',col='brain_area',kind='violin',col_wrap=5)
+sns.catplot(data=all_means[all_means.dataset=='steinmetz'],x='individual',y='tau',col='brain_area',kind='box',col_wrap=3)
 
 plt.xticks([])
 
 plt.show()
+
+# model
+
+stein_data = all_means[all_means.dataset=='steinmetz']
+
+model = smf.ols(formula='tau ~ individual',data=stein_data)
+
+res = model.fit()
+
+print(res.summary())
 # %%
 
 plt.figure(figsize=(11,8.5))
 
-sns.catplot(data=individual_data[individual_data.dataset=='chandravadia'],x='individual',y='tau',col='brain_area',kind='violin')
+sns.catplot(data=all_means[all_means.dataset=='chandravadia'],x='individual',y='tau',col='brain_area',kind='box')
 
 plt.xticks([])
 
 plt.show()
+
+# model
+
+chan_data = all_means[all_means.dataset=='chandravadia']
+
+model = smf.ols(formula='tau ~ individual',data=chan_data)
+
+res = model.fit()
+
+print(res.summary())
 # %%

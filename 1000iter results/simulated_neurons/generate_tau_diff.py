@@ -1,7 +1,7 @@
 #%%
 
 import sys
-sys.path.append('F:/abcTau/')
+sys.path.append('/Users/zachz/Documents/abcTau/abcTau')
 from scipy import stats
 import numpy as np
 import warnings
@@ -201,9 +201,9 @@ for tau in range(10,1010,10):
     
     tau_diffs.append((tau, np.mean(iter_taus), one_fit_tau))
     
-tau_diffs = pd.DataFrame(tau_diffs,columns=['true_tau','iter_tau_diff','one_fit_diff'])
+tau_diffs = pd.DataFrame(tau_diffs,columns=['true_tau','iter_tau','one_fit'])
 
-tau_diffs.to_csv('tau_diffs.csv')
+tau_diffs.to_csv('one_vs_iter.csv')
 
 
 
