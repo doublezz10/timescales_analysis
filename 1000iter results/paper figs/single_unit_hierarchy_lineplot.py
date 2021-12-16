@@ -305,7 +305,6 @@ brain_regions = ['Hippocampus','Amygdala','OFC','mPFC','ACC']
 
 no_rats['brain_region'] = pd.Categorical(no_rats['brain_region'], categories = brain_regions , ordered = True)
 
-
 no_rats = no_rats.reset_index()
 
 plt.figure(figsize=(11,8.5))
@@ -322,27 +321,26 @@ plt.ylim((100,550))
 plt.show()
 #%% GLM
 
-model = smf.glm(formula='tau ~ species + brain_region + (species * brain_region)',data=no_rats)
-
+model = smf.ols('tau ~ species + brain_region', data=no_rats)
 res = model.fit()
 
 print(res.summary())
 
 #%%
-
-model = smf.mixedlm("tau", groups=("species",'brain_region'), data=no_rats)
-res = model.fit()
-
-print(res.summary())
-
-#%%
-model2 = smf.glm(formula='tau ~ species + brain_region + mean_fr', data=no_rats)
+model2 = smf.ols(formula='tau ~ species + brain_region + mean_fr', data=no_rats)
 
 res2 = model2.fit()
 
 print(res2.summary())
 
 #%%
-print(anova_lm(res2,res))
+#print(anova_lm(res2,res))
 
-# %%
+# %% post hoc for amygdala difference
+
+amyg_model = smf.glm(formula='tau ~ species',data=no_rats[no_rats.brain_region=='Amygdala'])
+amyg_model = amyg_model.fit()
+
+print(amyg_model.summary())
+
+#%%

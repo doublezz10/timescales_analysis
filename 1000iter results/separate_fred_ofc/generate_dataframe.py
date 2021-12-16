@@ -1,16 +1,13 @@
 #%%
-
-"""
-Created on Tue Mar 30 15:16:34 2021
-
-@author: zachz
-"""
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 import seaborn as sns
+
+from scipy.stats import linregress
+
+from scipy.io import loadmat
 
 plt.style.use('seaborn')
 
@@ -95,6 +92,8 @@ fred_data = fred_data[fred_data.r2 >= 0.5]
 
 fred_data = fred_data[(fred_data.tau >=10) & (fred_data.tau <= 1000)]
 
+all_means['brain_area'] = all_means['brain_area'].str.replace('hippocampus','hc')
+
 #%% Loop through and pull out matching taus
 
 matching_units = []
@@ -140,6 +139,7 @@ for dataset in all_means.dataset.unique():
                 zach_r2 = this_unit['mean_r2'].values[0]
                 
                 fred_tau = fred_unit['tau'].values[0]
+                fred_lat = fred_unit['lat'].values[0]
                 fred_fr = fred_unit['FR'].values[0]
                 fred_r2 = fred_unit['r2'].values[0]
                 
@@ -149,72 +149,141 @@ for dataset in all_means.dataset.unique():
                     
                     dataset = 'young/mosher'
                 
-                matching_units.append((dataset,species,brain_area,unit_n,zach_tau,zach_tau_sd,zach_fr,zach_n,zach_r2,fred_tau,fred_fr,fred_r2,tau_diff))
+                matching_units.append((dataset,species,brain_area,unit_n,zach_tau,zach_tau_sd,zach_fr,zach_n,zach_r2,fred_tau,fred_lat,fred_fr,fred_r2,tau_diff))
             
-matching_units = pd.DataFrame(matching_units,columns=['dataset','species','brain_area','unit','zach_tau','zach_tau_sd','zach_fr','zach_n','zach_r2','fred_tau','fred_fr','fred_r2','tau_diff'])
+matching_units = pd.DataFrame(matching_units,columns=['dataset','species','brain_area','unit','zach_tau','zach_tau_sd','zach_fr','zach_n','zach_r2','fred_tau','fred_lat','fred_fr','fred_r2','tau_diff'])
 
 listofspecies = ['mouse','rat','monkey','human']
 
 matching_units['species'] = pd.Categorical(matching_units['species'], categories = listofspecies , ordered = True)
 
+stoll_amyg = matching_units[matching_units.brain_area == 'amygdala']
 
-#%% Separate by brain area
+stoll_amyg = stoll_amyg[stoll_amyg.dataset=='stoll']
 
-acc = matching_units[(matching_units.brain_area == 'acc') | (matching_units.brain_area == 'dACC') | (matching_units.brain_area == 'aca') | (matching_units.brain_area == 'mcc')]
+stoll_ofc = matching_units[(matching_units.brain_area == 'ofc') | (matching_units.brain_area == 'orb')]
 
-amyg = matching_units[(matching_units.brain_area == 'amygdala') | (matching_units.brain_area == 'central') | (matching_units.brain_area == 'bla')]
+stoll_ofc = stoll_ofc[stoll_ofc.dataset=='stoll']
 
-hc = matching_units[(matching_units.brain_area == 'hc') | (matching_units.brain_area == 'ca1') | (matching_units.brain_area == 'ca2') | (matching_units.brain_area == 'ca3') | (matching_units.brain_area == 'dg')]
+stoll_lai = matching_units[matching_units.brain_area == 'LAI']
 
-mpfc = matching_units[(matching_units.brain_area == 'mpfc') | (matching_units.brain_area == 'pl') | (matching_units.brain_area == 'ila') | (matching_units.brain_area == 'scACC')]
+#%% Import cell_info to get which Brodmann's area
+#   Put together matching units along with which area
 
-ofc = matching_units[(matching_units.brain_area == 'ofc') | (matching_units.brain_area == 'orb')]
+ofc_details = []
+amyg_details = []
+lai_details = []
 
-#%% New dataframe with all brain regions stacked
+mat = loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Stoll - monkey1/stoll_OFC.mat',simplify_cells=True)
+ofc_cell_info = mat['cell_info']
 
-acc2 = acc.assign(brain_region='ACC')
-amyg2 = amyg.assign(brain_region='Amygdala')
-hc2 = hc.assign(brain_region='Hippocampus')
-mpfc2 = mpfc.assign(brain_region='mPFC')
-ofc2 = ofc.assign(brain_region='OFC')
+for unit in range(len(ofc_cell_info)):
+    
+    unit_id = unit + 1
+    
+    depth = ofc_cell_info[unit]['depth']
+    
+    area = ofc_cell_info[unit]['area']
+    
+    ofc_details.append((unit_id,'ofc',area,depth))
 
-brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2))
+mat = loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Stoll - monkey1/stoll_AMG.mat',simplify_cells=True)
+amyg_cell_info = mat['cell_info']
 
-#%% one big subplot
+for unit in range(len(amyg_cell_info)):
+    
+    unit_id = unit + 1
+    
+    depth = amyg_cell_info[unit]['depth']
+    
+    area = amyg_cell_info[unit]['area']
+    
+    amyg_details.append((unit_id,'amygdala',area,depth))
+    
+mat = loadmat('/Users/zachz/Dropbox/Timescales across species/Spiketimes only/Stoll - monkey1/stoll_LAI.mat',simplify_cells=True)
+lai_cell_info = mat['cell_info']
 
-plt.figure(figsize=(11,8.5))
+for unit in range(len(lai_cell_info)):
+    
+    unit_id = unit + 1
+    
+    depth = lai_cell_info[unit]['depth']
+    
+    area = lai_cell_info[unit]['area']
+    
+    lai_details.append((unit_id,'LAI',area,depth))
+    
+ofc_details = pd.DataFrame(ofc_details,columns=['unit','brain_region','specific_area','depth'])
+amyg_details = pd.DataFrame(amyg_details,columns=['unit','brain_region','specific_area','depth'])
+lai_details = pd.DataFrame(lai_details,columns=['unit','brain_region','specific_area','depth'])
 
-g = sns.FacetGrid(data=brain_region_data,hue='dataset',col='brain_region',col_wrap=3,legend_out=True)
-g.map_dataframe(sns.regplot,x='zach_tau',y='fred_tau',scatter_kws={'s':5, 'alpha': 0.5},ci=None)
+# %% add depth and specific area columns to dataframes
 
-for a in g.axes:
-    a.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-    a.set_xlabel('iter_tau')
-    a.set_ylabel('isi_tau')
-    a.legend()
-plt.tight_layout()
+all_depths = []
+all_areas = []
 
+for unit in range(len(stoll_ofc)):
+    
+    this_unit = stoll_ofc.iloc[unit]
+    
+    unit_id = this_unit.unit
+    
+    these_details = ofc_details[ofc_details.unit==unit_id]
+    
+    this_depth = these_details.iloc[0]['depth']
+    this_area = these_details.iloc[0]['specific_area']
+    
+    all_depths.append(this_depth)
+    all_areas.append(this_area)
+    
+stoll_ofc['depth'] = all_depths
+stoll_ofc['specific_area'] = all_areas
 
+all_depths = []
+all_areas = []
 
-plt.show()
+for unit in range(len(stoll_amyg)):
+    
+    this_unit = stoll_amyg.iloc[unit]
+    
+    unit_id = this_unit.unit
+    
+    these_details = amyg_details[amyg_details.unit==unit_id]
+    
+    this_depth = these_details.iloc[0]['depth']
+    this_area = these_details.iloc[0]['specific_area']
+    
+    all_depths.append(this_depth)
+    all_areas.append(this_area)
+    
+stoll_amyg['depth'] = all_depths
 
-#%% Prettier way to do it
-plt.figure(figsize=(11,8.5))
+all_depths = []
+all_areas = []
 
-f = sns.lmplot(data=brain_region_data,x='zach_tau',y='fred_tau',hue='dataset',col='brain_region',col_wrap=3,ci=95,scatter_kws={'s':5, 'alpha': 0.5},n_boot=5)
+for unit in range(len(stoll_lai)):
+    
+    this_unit = stoll_lai.iloc[unit]
+    
+    unit_id = this_unit.unit
+    
+    these_details = lai_details[lai_details.unit==unit_id]
+    
+    this_depth = these_details.iloc[0]['depth']
+    this_area = these_details.iloc[0]['specific_area']
+    
+    all_depths.append(this_depth)
+    all_areas.append('LAI')
+    
+stoll_lai['depth'] = all_depths
+stoll_lai['specific_area'] = all_areas
 
-f = (f.set_axis_labels("iter_tau", "isi_tau"))
-
-plt.show()
-
-#%% Test
-import statsmodels.formula.api as smf
-
-model = smf.glm(formula='fred_tau ~ zach_tau',data=brain_region_data)
-
-res = model.fit()
-
-print(res.summary())
 # %%
+
+stoll_ofc.to_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/separate_fred_ofc/fred_ofc.csv')
+
+stoll_amyg.to_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/separate_fred_ofc/fred_amyg.csv')
+
+stoll_lai.to_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/separate_fred_ofc/fred_lai.csv')
 
 # %%

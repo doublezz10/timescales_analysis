@@ -12,6 +12,9 @@ import matplotlib.pyplot as plt
 
 import seaborn as sns
 
+from scipy.stats import linregress
+
+
 plt.style.use('seaborn')
 
 #%% Load in data, filter
@@ -82,17 +85,20 @@ fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspe
 fred_data['brain_area'] = fred_data['brain_area'].str.replace('hippocampus','hc')
 fred_data['brain_area'] = fred_data['brain_area'].str.replace('mPFC','mpfc')
 fred_data['brain_area'] = fred_data['brain_area'].str.replace('ventralStriatum','vStriatum')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('AMG','amygdala')
 fred_data['brain_area'] = fred_data['brain_area'].str.replace('Cd','caudate')
 fred_data['brain_area'] = fred_data['brain_area'].str.replace('OFC','ofc')
 fred_data['brain_area'] = fred_data['brain_area'].str.replace('PUT','putamen')
 fred_data['brain_area'] = fred_data['brain_area'].str.replace('hippocampus2','hc2')
+
+fred_data = fred_data.replace(['amyg','AMG'],'amygdala')
 
 fred_data['dataset'] = fred_data['dataset'].str.replace('stein','steinmetz')
 
 fred_data = fred_data[fred_data.r2 >= 0.5]
 
 fred_data = fred_data[(fred_data.tau >=10) & (fred_data.tau <= 1000)]
+
+all_means['brain_area'] = all_means['brain_area'].str.replace('hippocampus','hc')
 
 #%% Loop through and pull out matching taus
 
@@ -200,7 +206,23 @@ plt.show()
 #%% Prettier way to do it
 plt.figure(figsize=(11,8.5))
 
-sns.lmplot(data=brain_region_data,x='zach_tau',y='fred_tau',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
+sns.lmplot(data=brain_region_data,x='zach_tau',y='fred_tau',hue='dataset',col='brain_region',col_wrap=3,ci=95,scatter_kws={'s':5, 'alpha': 0.5})
+
+plt.show()
+
+_,_,r2,p,_ = linregress(brain_region_data.zach_tau,brain_region_data.fred_tau)
+
+print('R^2 = %.2f, p = %.2f' %(r2,p))
+
+#%% Not separate by brain_area
+
+plt.figure(figsize=(11,8.5))
+
+sns.lmplot(data=brain_region_data,x='zach_tau',y='fred_tau',hue='dataset',ci=95,scatter_kws={'s':5, 'alpha': 0.5})
+plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
+
+plt.xlabel('Iteratively fit tau (ms)')
+plt.ylabel('ISI-based tau (ms)')
 
 plt.show()
 
@@ -287,3 +309,14 @@ plt.show()
 sns.lmplot(data=brain_region_data,x='fred_fr',y='fred_r2',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
 
 plt.show()
+
+#%%
+
+import statsmodels.formula.api as smf
+
+model = smf.glm('zach_tau ~ fred_tau + fred_fr + zach_fr',data=brain_region_data)
+
+model = model.fit()
+
+print(model.summary())
+# %%

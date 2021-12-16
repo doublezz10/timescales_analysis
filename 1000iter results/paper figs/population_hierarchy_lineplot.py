@@ -70,10 +70,13 @@ for dataset in no_rats.dataset.unique():
         
         mean_tau = np.mean(this_region['tau'])
         
-        mean_no_rats.append((species,dataset,brain_region,mean_tau))
+        mean_fr = np.mean(this_region['fr'])
         
-mean_no_rats = pd.DataFrame(mean_no_rats,columns=['species','dataset','brain_region','mean_tau'])
+        mean_no_rats.append((species,dataset,brain_region,mean_tau,mean_fr))
+        
+mean_no_rats = pd.DataFrame(mean_no_rats,columns=['species','dataset','brain_region','mean_tau','mean_fr'])
 mean_no_rats['species'] = pd.Categorical(mean_no_rats['species'], categories = norats , ordered = True)
+mean_no_rats['brain_region'] = pd.Categorical(mean_no_rats['brain_region'], categories = brain_regions , ordered = True)
 
 #%%
 
@@ -94,7 +97,7 @@ plt.show()
 
 #%% GLM
 
-model = smf.glm(formula='tau ~ species + brain_region + (species * brain_region)',data=no_rats)
+model = smf.ols(formula='mean_tau ~ species + brain_region',data=mean_no_rats)
 
 res = model.fit()
 
@@ -102,10 +105,26 @@ print(res.summary())
 
 #%%
 
-model2 = smf.glm(formula='tau ~ species + brain_region + fr', data=no_rats)
+model2 = smf.ols(formula='mean_tau ~ species + brain_region + mean_fr', data=mean_no_rats)
 
 res2 = model2.fit()
 
 print(res2.summary())
 
+#%%
+
+print(anova_lm(res,res2))
+
+# %% Prove amygdala is different
+
+model3 = smf.ols(formula='mean_tau ~ species',data=mean_no_rats[mean_no_rats.brain_region=='Amygdala'])
+res3 = model3.fit()
+
+print(res3.summary())
+# %% Repeat with OFC
+
+model4 = smf.ols(formula='mean_tau ~ species',data=mean_no_rats[mean_no_rats.brain_region=='OFC'])
+res4 = model4.fit()
+
+print(res4.summary())
 # %%

@@ -221,7 +221,7 @@ for brain_region in halves.brain_region.unique():
             
 # %% Linear modelling to be fancy
 
-model = smf.glm(formula='tau ~ species + brain_region + half',data=halves)
+model = smf.ols(formula='tau ~ species + brain_region + half',data=halves)
 
 res = model.fit()
 

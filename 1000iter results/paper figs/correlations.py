@@ -37,7 +37,7 @@ raw_acc = raw_data[(raw_data.brain_area == 'acc') | (raw_data.brain_area == 'dAC
 
 raw_amyg = raw_data[(raw_data.brain_area == 'amygdala') | (raw_data.brain_area == 'central') | (raw_data.brain_area == 'bla')]
 
-raw_hc = raw_data[(raw_data.brain_area == 'hc') | (raw_data.brain_area == 'hc2') | (raw_data.brain_area == 'ca1') | (raw_data.brain_area == 'ca2') | (raw_data.brain_area == 'ca3') | (raw_data.brain_area == 'dg') | (raw_data.brain_area == 'hippocampus')]
+raw_hc = raw_data[(raw_data.brain_area == 'hc') | (raw_data.brain_area == 'hc2') | (raw_data.brain_area == 'ca1') | (raw_data.brain_area == 'ca2') | (raw_data.brain_area == 'ca3') | (raw_data.brain_area == 'dg')]
 
 raw_mpfc = raw_data[(raw_data.brain_area == 'mpfc') | (raw_data.brain_area == 'pl') | (raw_data.brain_area == 'ila') | (raw_data.brain_area == 'scACC')]
 
@@ -58,6 +58,69 @@ mpfc = data[(data.brain_area == 'mpfc') | (data.brain_area == 'pl') | (data.brai
 ofc = data[(data.brain_area == 'ofc') | (data.brain_area == 'orb')]
            
 striatum = data[(data.brain_area == 'vStriatum') | (data.brain_area == 'putamen') | (data.brain_area == 'caudate')]
+
+brain_regions = pd.concat((acc,amyg,hc,mpfc,ofc,striatum))
+
+#%% Plot of surviving iterations by brain area
+
+prop_surviving = [len(acc)/len(raw_acc),len(amyg)/len(raw_amyg),len(hc)/len(raw_hc),len(mpfc)/len(raw_mpfc),len(ofc)/len(raw_ofc),len(striatum)/len(raw_striatum)]
+
+plt.bar(range(6),prop_surviving)
+plt.xticks(range(6),['ACC','amygdala','hippocampus','mPFC','OFC','striatum'])
+plt.xlabel('brain_area')
+plt.ylabel('prop surviving')
+plt.title('$R^2 > 0.5$ and $10 < tau < 1000$')
+plt.show()
+
+#%% Get mean values over all iterations
+
+all_means = []
+
+for dataset in data.dataset.unique():
+    
+    this_dataset = data[data.dataset == dataset]
+    
+    for brain_area in this_dataset.brain_area.unique():
+        
+        these_data = this_dataset[this_dataset.brain_area == brain_area]
+
+        for unit_n in these_data.unit.unique():
+    
+            this_unit = these_data[these_data.unit == unit_n]
+            
+            if len(this_unit) < 100:
+                
+                pass
+            
+            else:
+            
+                species = this_unit.iloc[0]['species']
+                
+                mean_tau = np.mean(this_unit['tau'])
+                
+                sd_tau = np.std(this_unit['tau'])
+                
+                mean_r2 = np.mean(this_unit['r2'])
+                
+                sd_r2 = np.std(this_unit['r2'])
+                
+                mean_fr = np.mean(this_unit['fr'])
+                
+                sd_fr = np.std(this_unit['fr'])
+                
+                n = len(this_unit)
+                
+                try:
+                
+                    all_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+                    
+                except:
+                    
+                    pass
+    
+all_means = pd.DataFrame(all_means,columns=['dataset','species','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
+
+all_means['species'] = pd.Categorical(all_means['species'], categories=listofspecies, ordered=True)
 
 #%% ACC
 
@@ -283,6 +346,52 @@ ofc_means = pd.DataFrame(ofc_means,columns=['dataset','species','unit','tau','sd
 
 ofc_means['species'] = pd.Categorical(ofc_means['species'], categories=listofspecies, ordered=True)
 
+# Striatum
+
+striatum_means = []
+
+for dataset in striatum.dataset.unique():
+    
+    these_data = striatum[striatum.dataset == dataset]
+
+    for unit_n in these_data.unit.unique():
+        
+        this_unit = these_data[these_data.unit == unit_n]
+
+        if len(this_unit) < 100:
+                
+            pass
+            
+        else:
+            
+            species = this_unit.iloc[0]['species']
+            
+            mean_tau = np.mean(this_unit['tau'])
+            
+            sd_tau = np.std(this_unit['tau'])
+            
+            mean_r2 = np.mean(this_unit['r2'])
+            
+            sd_r2 = np.std(this_unit['r2'])
+            
+            mean_fr = np.mean(this_unit['fr'])
+            
+            sd_fr = np.std(this_unit['fr'])
+            
+            n = len(this_unit)
+            
+            try:
+            
+                striatum_means.append((dataset,species,unit_n,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+                
+            except:
+                
+                pass
+    
+striatum_means = pd.DataFrame(striatum_means,columns=['dataset','species','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
+
+striatum_means['species'] = pd.Categorical(striatum_means['species'], categories=listofspecies, ordered=True)
+
 #%%
 
 acc_means['brain_region'] = 'acc'
@@ -291,126 +400,45 @@ hc_means['brain_region'] = 'hippocampus'
 mpfc_means['brain_region'] = 'mpfc'
 ofc_means['brain_region'] = 'ofc'
 
-#%% Raincloud plots by brain area - mean tau
+all_means = pd.concat((acc_means,amyg_means,hc_means,mpfc_means,ofc_means))
 
-# ACC
+#%% 
 
-dx = "species"; dy = "tau"; ort = "h"; sigma = .2
+acc_means2 = acc_means.assign(brain_region = 'acc')
+amyg_means2 = amyg_means.assign(brain_region = 'amygdala')
+hc_means2 = hc_means.assign(brain_region = 'hippocampus')
+mpfc_means2 = mpfc_means.assign(brain_region = 'mpfc')
+ofc_means2 = ofc_means.assign(brain_region = 'ofc')
 
-fig, ax = plt.subplots(figsize=(5,5))
+brain_region_data = pd.concat((acc_means2,amyg_means2,hc_means2,mpfc_means2,ofc_means2))
 
-pt.RainCloud(x = dx, y = dy, data = acc_means, bw = sigma,
-                 width_viol = .6, ax = ax, orient = ort,point_size=1)
-
-plt.title('ACC')
-plt.show() 
 #%%
-acc_mod = smf.ols('tau ~ species',data=acc_means)
-acc_mod = acc_mod.fit()
 
-print(acc_mod.summary())
+fig = plt.figure(figsize=(11,8.5))
+
+ax1 = fig.add_subplot(121)
+
+f = sns.scatterplot(ax=ax1,data=brain_region_data,x='mean_r2',y='tau',hue='species',s=8,alpha=0.6)
+
+f.set_xlabel('goodness of fit (R$^2$)')
+f.set_ylabel('timescale (ms)')
+
+ax2 = fig.add_subplot(122,sharey=ax1)
+
+f = sns.scatterplot(ax=ax2,data=brain_region_data,x='mean_fr',y='tau',hue='species',s=8,alpha=0.6)
+
+f.set_xlabel('mean firing rate (hz)')
+
+plt.show()
+# %% model
+
+r2_mod = (smf.ols('tau ~ mean_r2',data=brain_region_data)).fit()
+
+print(r2_mod.summary())
+
 #%%
-acc_mod2 = smf.ols('tau ~ species + mean_fr',data=acc_means)
-acc_mod2 = acc_mod2.fit()
 
-print(acc_mod2.summary())
-#%%
-print(anova_lm(acc_mod,acc_mod2))
+fr_mod = (smf.ols('tau ~ mean_fr',data=brain_region_data)).fit()
 
-#%% Amygdala
-
-dx = "species"; dy = "tau"; ort = "h"; sigma = .2
-
-fig, ax = plt.subplots(figsize=(5,5))
-
-pt.RainCloud(x = dx, y = dy, data = amyg_means, bw = sigma,
-                 width_viol = .6, ax = ax, orient = ort,point_size=1)
-
-plt.title('Amygdala')
-plt.show() 
-#%%
-amyg_mod = smf.ols('tau ~ species',data=amyg_means)
-amyg_mod = amyg_mod.fit()
-
-print(amyg_mod.summary())
-#%%
-amyg_mod2 = smf.ols('tau ~ species + mean_fr',data=amyg_means)
-amyg_mod2 = amyg_mod2.fit()
-
-print(amyg_mod2.summary())
-#%%
-print(anova_lm(amyg_mod,amyg_mod2))
-
-#%% Hippocampus
-
-dx = "species"; dy = "tau"; ort = "h"; sigma = .2
-
-fig, ax = plt.subplots(figsize=(5,5))
-
-pt.RainCloud(x = dx, y = dy, data = hc_means, bw = sigma,
-                 width_viol = .6, ax = ax, orient = ort,point_size=1)
-
-plt.title('Hippocampus')
-plt.show() 
-#%%
-hc_mod = smf.ols('tau ~ species',data=hc_means)
-hc_mod = hc_mod.fit()
-
-print(hc_mod.summary())
-#%%
-hc_mod2 = smf.ols('tau ~ species + mean_fr',data=hc_means)
-hc_mod2 = hc_mod2.fit()
-
-print(hc_mod2.summary())
-#%%
-print(anova_lm(hc_mod,hc_mod2))
-
-#%% mPFC
-
-dx = "species"; dy = "tau"; ort = "h"; sigma = .2
-
-fig, ax = plt.subplots(figsize=(5,5))
-
-pt.RainCloud(x = dx, y = dy, data = mpfc_means, bw = sigma,
-                 width_viol = .6, ax = ax, orient = ort,point_size=1)
-
-plt.title('mPFC')
-plt.show() 
-#%%
-mpfc_mod = smf.ols('tau ~ species',data=mpfc_means)
-mpfc_mod = mpfc_mod.fit()
-
-print(mpfc_mod.summary())
-#%%
-mpfc_mod2 = smf.ols('tau ~ species + mean_fr',data=mpfc_means)
-mpfc_mod2 = mpfc_mod2.fit()
-
-print(mpfc_mod2.summary())
-#%%
-print(anova_lm(mpfc_mod,mpfc_mod2))
-
-#%% OFC
-
-dx = "species"; dy = "tau"; ort = "h"; sigma = .2
-
-fig, ax = plt.subplots(figsize=(5,5))
-
-pt.RainCloud(x = dx, y = dy, data = ofc_means, bw = sigma,
-                 width_viol = .6, ax = ax, orient = ort,point_size=1)
-
-plt.title('OFC')
-plt.show() 
-#%%
-ofc_mod = smf.ols('tau ~ species',data=ofc_means)
-ofc_mod = ofc_mod.fit()
-
-print(ofc_mod.summary())
-#%%
-ofc_mod2 = smf.ols('tau ~ species + mean_fr',data=ofc_means)
-ofc_mod2 = ofc_mod2.fit()
-
-print(ofc_mod2.summary())
-#%%
-print(anova_lm(ofc_mod,ofc_mod2))
-
+print(fr_mod.summary())
 # %%

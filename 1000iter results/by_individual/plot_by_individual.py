@@ -92,6 +92,7 @@ brain_region = pd.concat((acc,amyg,hc,mpfc,ofc))
 #%%
 
 import statsmodels.formula.api as smf
+from statsmodels.stats.anova import anova_lm
 
 plt.figure(figsize=(11,8.5))
 
@@ -101,15 +102,27 @@ plt.xticks([])
 
 plt.show()
 
-# model
+#%% model
 
 stein_data = all_means[all_means.dataset=='steinmetz']
 
-model = smf.ols(formula='tau ~ individual',data=stein_data)
+model = smf.ols(formula='tau ~ brain_area + individual',data=stein_data)
 
 res = model.fit()
 
 print(res.summary())
+
+#%%
+
+model2 = smf.ols(formula='tau ~ individual',data=stein_data)
+
+res2 = model2.fit()
+
+print(res2.summary())
+
+#%%
+
+print(anova_lm(res2,res))
 # %%
 
 plt.figure(figsize=(11,8.5))
@@ -120,7 +133,7 @@ plt.xticks([])
 
 plt.show()
 
-# model
+#%% model
 
 chan_data = all_means[all_means.dataset=='chandravadia']
 
@@ -129,4 +142,4 @@ model = smf.ols(formula='tau ~ individual',data=chan_data)
 res = model.fit()
 
 print(res.summary())
-# %%
+#%%

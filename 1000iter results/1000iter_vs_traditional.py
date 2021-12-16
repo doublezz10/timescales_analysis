@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from scipy.stats import linregress
+
 import seaborn as sns
 
 plt.style.use('seaborn')
@@ -55,9 +57,7 @@ for dataset in data.dataset.unique():
             
             n = len(this_unit)
             
-            # fixed python numbering here - first unit is index 1 not 0
-            
-            all_means.append((dataset,species,brain_area,unit_n + 1,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
+            all_means.append((dataset,species,brain_area,unit_n ,mean_tau,sd_tau,np.log10(mean_tau),mean_r2,sd_r2,mean_fr,sd_fr,n))
     
 all_means = pd.DataFrame(all_means,columns=['dataset','species','brain_area','unit','tau','sd_tau','log_tau','mean_r2','sd_r2','mean_fr','sd_fr','n'])
 
@@ -71,7 +71,11 @@ del mean_tau, sd_tau, mean_r2, sd_r2, mean_fr, sd_fr, n
 
 old_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/results.csv')
 
-# Loop through and pull out matching taus
+print('%i units fit using iterative method' %(len(all_means[all_means.species != 'rat'])))
+print('%i units fit using traditional method' %(len(old_data)))
+print('%.2f percent more units fit using iterative method' %((len(all_means[all_means.species != 'rat'])) / (len(old_data))  * 100) )
+
+#%% Loop through and pull out matching taus
 
 matching_units = []
 
@@ -131,7 +135,7 @@ for dataset in all_means.dataset.unique():
                 
                 matching_units.append((dataset,species,brain_area,unit_n,zach_tau,zach_tau_sd,zach_fr,zach_n,zach_r2,one_fit_tau,one_fit_fr,one_fit_r2,tau_diff))
             
-matching_units = pd.DataFrame(matching_units,columns=['dataset','species','brain_area','unit','iter_tau','zach_tau_sd','zach_fr','zach_n','zach_r2','one_fit_tau','one_fit_fr','one_fit_r2','tau_diff'])
+matching_units = pd.DataFrame(matching_units,columns=['dataset','species','brain_area','unit','iter_tau','iter_tau_sd','iter_fr','iter_n','iter_r2','one_fit_tau','one_fit_fr','one_fit_r2','tau_diff'])
 
 listofspecies = ['mouse','monkey','human']
 
@@ -149,7 +153,7 @@ mpfc = matching_units[(matching_units.brain_area == 'mpfc') | (matching_units.br
 
 ofc = matching_units[(matching_units.brain_area == 'ofc') | (matching_units.brain_area == 'orb')]
 
-#%% New dataframe with all brain regions stacked
+# New dataframe with all brain regions stacked
 
 acc2 = acc.assign(brain_region='ACC')
 amyg2 = amyg.assign(brain_region='Amygdala')
@@ -164,7 +168,7 @@ brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2))
 plt.figure(figsize=(11,8.5))
 
 g = sns.FacetGrid(data=brain_region_data,hue='dataset',col='brain_region',col_wrap=3,legend_out=True)
-g.map_dataframe(sns.regplot,x='iter_tau',y='one_fit_tau',scatter_kws={'s':5, 'alpha': 0.5},ci=None)
+g.map_dataframe(sns.regplot,x='iter_tau',y='one_fit_tau',scatter_kws={'s':5, 'alpha': 0.5},ci=95)
 
 for a in g.axes:
     a.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
@@ -178,9 +182,44 @@ plt.show()
 #%% Prettier way to do it
 plt.figure(figsize=(11,8.5))
 
-sns.lmplot(data=brain_region_data,x='iter_tau',y='one_fit_tau',hue='dataset',ci=None,scatter_kws={'s':5, 'alpha': 0.5})
+sns.lmplot(data=brain_region_data,x='iter_tau',y='one_fit_tau',hue='dataset',ci=95,scatter_kws={'s':5, 'alpha': 0.5})
 
 plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
 
+plt.xlabel('Iteratively fit tau (ms)')
+plt.ylabel('One fit tau (ms)')
+
 plt.show()
+
+#%%
+_,_,r2,p,_ = linregress(brain_region_data.iter_tau,brain_region_data.one_fit_tau)
+
+print('R^2 = %.2f, p = %.2f' %(r2,p))
+#%%
+
+import statsmodels.formula.api as smf
+from statsmodels.stats.anova import anova_lm
+
+model = smf.ols('iter_tau ~ one_fit_tau + dataset',data=brain_region_data)
+
+model = model.fit()
+
+print(model.summary())
+
+model2 = smf.ols('iter_tau ~ one_fit_tau',data=brain_region_data)
+
+model2 = model2.fit()
+
+print(model2.summary())
+
+#%%
+
+print(anova_lm(model2,model))
+# %%
+
+model = smf.ols('iter_tau ~ one_fit_tau + dataset',data=brain_region_data)
+
+model = model.fit()
+
+print(model.summary())
 # %%
