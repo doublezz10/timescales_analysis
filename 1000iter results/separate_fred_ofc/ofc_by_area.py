@@ -23,7 +23,7 @@ lai = pd.read_csv('fred_lai.csv')
 
 ofc_lai = pd.concat((ofc,lai),ignore_index=True)
 
-order=['11m','13m','13l','LAI','11l','13b']
+order=['11m','13m','13l','AI','11l','13b']
 
 ofc_lai['specific_area'] = pd.Categorical(ofc_lai['specific_area'],categories=order,ordered=True)
 
@@ -40,17 +40,34 @@ plt.show()
 
 #%% Sorted by mean (median just switches 13b and 11l)
 
-sns.violinplot(data=ofc_lai,x='specific_area',y='zach_tau',)
+sns.violinplot(data=ofc_lai,x='specific_area',y='zach_tau',cut=0)
+
+plt.xlabel('Cytoarchitectonic area')
+plt.ylabel('Iteratively fit tau (ms)')
 
 plt.show()
 
 #%%
 
-sns.pointplot(data=ofc_lai,x='specific_area',y='zach_tau')
+order=['11m','13m','13l','AI','11l']
+
+ofc_lai['specific_area'] = pd.Categorical(ofc_lai['specific_area'],categories=order,ordered=True)
+
+plt.figure(figsize=(11,8.5))
+
+sns.pointplot(data=ofc_lai[ofc_lai.specific_area != '13b'],x='specific_area',y='zach_tau')
+
+plt.xlabel('Cytoarchitectonic area')
+plt.ylabel('Iteratively fit tau (ms)')
 
 plt.show()
 
 #%%
+
+order=['11m','13m','13l','AI','11l','13b']
+
+ofc_lai['specific_area'] = pd.Categorical(ofc_lai['specific_area'],categories=order,ordered=True)
+
 
 sns.scatterplot(data=ofc_lai,x='fred_lat',y='depth',hue='specific_area',size=0.3,alpha=0.6)
 
@@ -74,7 +91,7 @@ sns.pointplot(data=ofc_lai,x='specific_area',y='fred_lat')
 plt.show()
 #%%
 
-model = smf.ols('fred_lat ~ specific_area',data=ofc_lai)
+model = smf.ols('zach_tau ~ specific_area',data=ofc_lai)
 
 res = model.fit()
 
@@ -82,7 +99,7 @@ print(res.summary())
 
 # %%
 
-model2 = smf.ols('fred_lat ~ specific_area + depth',data=ofc_lai)
+model2 = smf.ols('zach_tau ~ specific_area + depth',data=ofc_lai)
 
 res2 = model2.fit()
 
@@ -166,19 +183,21 @@ all_3_species = pd.concat((ofc_lai,human_mouse),ignore_index=True)
 
 #%%
 
-order = ['11m','13m','13l','human ofc','LAI','mouse orb','13b','11l']
+all_3_species = all_3_species[all_3_species.specific_area != '13b']
+
+order = ['11m','13m','13l','human ofc','AI','mouse orb','11l']
 
 all_3_species['specific_area'] = pd.Categorical(all_3_species['specific_area'], categories = order , ordered = True)
 
 #%% Sorted by mean (median just switches 13b and 11l)
 
-sns.violinplot(data=all_3_species,x='specific_area',y='zach_tau',)
+sns.violinplot(data=all_3_species,x='specific_area',y='zach_tau',cut=0)
 
 plt.show()
 
 #%%
 
-sns.pointplot(data=all_3_species,x='specific_area',y='zach_tau')
+sns.pointplot(data=all_3_species[all_3_species.specific_area != '13b'],x='specific_area',y='zach_tau')
 
 plt.show()
 # %%

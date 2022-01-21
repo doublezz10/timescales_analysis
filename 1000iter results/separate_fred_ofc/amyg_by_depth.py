@@ -20,7 +20,7 @@ amyg = pd.read_csv('fred_amyg.csv')
 
 #%%
 
-plt.scatter(x=amyg.tau_diff,y=amyg.depth,color='blue',label='iterative_fit')
+plt.scatter(x=amyg.zach_tau,y=amyg.depth,color='blue',label='iterative_fit')
 # plt.scatter(x=amyg.fred_tau,y=amyg.depth,color='red',label='ISI_fit')
 
 plt.ylabel('depth (mm)')
@@ -38,4 +38,12 @@ model = smf.ols('zach_tau ~ depth',data=amyg)
 res = model.fit()
 
 print(res.summary())
+
+
+#%%
+
+sns.lmplot(data=amyg,x='zach_tau',y='depth',line_kws={'color': 'green'},scatter_kws={'color': 'green'})
+
+plt.xlabel('iteratively fit timescale (ms)')
+plt.ylabel('recording depth (mm)')
 # %%

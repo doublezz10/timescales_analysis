@@ -27,6 +27,8 @@ data = raw_data[(raw_data.tau >= 10) & (raw_data.tau <= 1000)]
 
 data = data[(data.r2 >= 0.5)]
 
+data = raw_data
+
 all_means = []
 
 for dataset in data.dataset.unique():
@@ -72,7 +74,7 @@ del mean_tau, sd_tau, mean_r2, sd_r2, mean_fr, sd_fr, n
 old_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/results.csv')
 
 print('%i units fit using iterative method' %(len(all_means[all_means.species != 'rat'])))
-print('%i units fit using traditional method' %(len(old_data)))
+print('%i units fit using traditional method' %(len(old_data[old_data.species != 'rat'])))
 print('%.2f percent more units fit using iterative method' %((len(all_means[all_means.species != 'rat'])) / (len(old_data))  * 100) )
 
 #%% Loop through and pull out matching taus
