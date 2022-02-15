@@ -58,74 +58,29 @@ ofc2 = ofc.assign(brain_region='OFC')
 lai2 = lai.assign(brain_region='LAI')
 
 
-fred_brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2,lai2))
+fred_brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2))
 
 fred_brain_region_data2 = fred_brain_region_data
-
-#%% LAI figs, monkey only
-
-brain_regions = ['Hippocampus','Amygdala','LAI','OFC','mPFC','ACC']
-
-fred_brain_region_data['brain_region'] = pd.Categorical(fred_brain_region_data['brain_region'], categories = brain_regions , ordered = True)
-
-fig, axs = plt.subplots(1,2,figsize=(11,8.5))
-
-sns.lineplot(ax=axs[0],data=fred_brain_region_data,x='brain_region',y='tau',hue='species',ci=95,markers=True,legend=True)
-
-axs[0].set_xlabel('brain region')
-axs[0].set_ylabel('timescale (ms)')
-
-sns.lineplot(ax=axs[1],data=fred_brain_region_data,x='brain_region',y='lat',hue='species',ci=95,markers=True,legend=False)
-
-axs[1].set_xlabel('brain region')
-axs[1].set_ylabel('latency (ms)')
-
-plt.tight_layout()
-
-plt.show()
-
-#%% First fig (no LAI)
 
 brain_regions2 = ['Hippocampus','Amygdala','OFC','mPFC','ACC']
 
 fred_brain_region_data2['brain_region'] = pd.Categorical(fred_brain_region_data2['brain_region'], categories = brain_regions2 , ordered = True)
 
+#%%
+
 fig= plt.figure(figsize=(3.4,2.6))
 
-sns.lineplot(data=fred_brain_region_data2[fred_brain_region_data2.brain_region != 'LAI'],x='brain_region',y='tau',hue='species',ci=95,markers=True,legend=True)
+sns.countplot(x='brain_region',hue='species',data=fred_brain_region_data2)
+
+plt.tick_params(axis='x', labelsize=7)
+plt.tick_params(axis='y',labelsize=7)
 
 plt.xlabel(None)
-plt.tick_params(axis='x', rotation=0,labelsize=7)
-plt.tick_params(axis='y',labelsize=7)
-plt.ylabel('timescale (ms)',fontsize=7)
+plt.ylabel('number of neurons',fontdict={'fontsize':7})
 
-plt.legend(title='species',prop={'size': 7})
+plt.legend(title='species',fontsize=7)
 
-plt.grid(False)
-
-plt.show()
-
-fig= plt.figure(figsize=(3.2,2.6))
-
-sns.lineplot(data=fred_brain_region_data2[fred_brain_region_data2.brain_region != 'LAI'],x='brain_region',y='lat',hue='species',ci=95,markers=True,legend=False)
-
-plt.xlabel(None)
-plt.tick_params(axis='x', rotation=0,labelsize=7)
-plt.tick_params(axis='y',labelsize=7)
-plt.ylabel('latency (ms)',fontsize=7)
-
-plt.grid(False)
-
-
-plt.show()
-
-
-#%% Is latency correlated with fred's tau?
-
-sns.scatterplot(data=fred_brain_region_data,x='lat',y='tau',hue='species',ci=95,markers=True,legend=True)
-
-plt.xlabel('latency (ms)')
-plt.ylabel('timescale (ms)')
+plt.tight_layout()
 
 plt.show()
 

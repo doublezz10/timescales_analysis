@@ -23,9 +23,14 @@ lai = pd.read_csv('fred_lai.csv')
 
 ofc_lai = pd.concat((ofc,lai),ignore_index=True)
 
+
 order=['11m','13m','13l','AI','11l','13b']
 
 ofc_lai['specific_area'] = pd.Categorical(ofc_lai['specific_area'],categories=order,ordered=True)
+
+#%%
+
+sns.countplot(data=ofc_lai,x='specific_area')
 
 #%%
 
@@ -55,10 +60,10 @@ ofc_lai['specific_area'] = pd.Categorical(ofc_lai['specific_area'],categories=or
 
 plt.figure(figsize=(11,8.5))
 
-sns.pointplot(data=ofc_lai[ofc_lai.specific_area != '13b'],x='specific_area',y='zach_tau')
+sns.pointplot(data=ofc_lai[ofc_lai.specific_area != '13b'],x='specific_area',y='fred_tau')
 
 plt.xlabel('Cytoarchitectonic area')
-plt.ylabel('Iteratively fit tau (ms)')
+plt.ylabel('Timescale (ms)')
 
 plt.show()
 
@@ -73,7 +78,7 @@ sns.scatterplot(data=ofc_lai,x='fred_lat',y='depth',hue='specific_area',size=0.3
 
 plt.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
 
-plt.xlabel('ISI latency (ms)')
+plt.xlabel('Latency (ms)')
 plt.ylabel('depth (mm)')
 
 plt.show()

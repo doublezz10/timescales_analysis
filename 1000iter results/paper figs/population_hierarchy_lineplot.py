@@ -27,7 +27,7 @@ acc = data[(data.brain_area == 'acc') | (data.brain_area == 'dACC') | (data.brai
 
 amyg = data[(data.brain_area == 'amygdala') | (data.brain_area == 'central') | (data.brain_area == 'bla')]
 
-hc = data[(data.brain_area == 'hc') | (data.brain_area == 'ca1') | (data.brain_area == 'ca2') | (data.brain_area == 'ca3') | (data.brain_area == 'dg')]
+hc = data[(data.brain_area == 'hc') | (data.brain_area == 'ca1') | (data.brain_area == 'ca2') | (data.brain_area == 'ca3') | (data.brain_area == 'dg') | (data.brain_area == 'hippocampus')]
 
 mpfc = data[(data.brain_area == 'mpfc') | (data.brain_area == 'pl') | (data.brain_area == 'ila') | (data.brain_area == 'scACC')]
 
@@ -90,8 +90,6 @@ sns.scatterplot(data=mean_no_rats,x='brain_region',y='mean_tau',hue='species',le
 
 plt.xlabel('brain region')
 plt.ylabel('population timescale (ms)')
-
-plt.ylim((100,550))
 
 plt.show()
 
