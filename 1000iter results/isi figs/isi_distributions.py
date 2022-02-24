@@ -71,16 +71,26 @@ fred_brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2,lai2))
 
 #%%
 
-fig,axs = plt.subplots(2,3,sharex=True,sharey=True)
+fig,axs = plt.subplots(2,3,figsize=(6.5,3.75),sharex=True,sharey=True)
 
 for region, ax in zip(fred_brain_region_data.brain_region.unique(),axs.ravel()):
         
     this_region = fred_brain_region_data[fred_brain_region_data.brain_region==region]
     
-    sns.histplot(ax=ax,data=this_region,x='tau',hue='species',element='step',stat='percent',fill=False,log_scale=True,binwidth=0.1,common_norm=False,alpha=0.7)
+    g=sns.histplot(ax=ax,data=this_region,x='tau',hue='species',element='step',stat='percent',fill=False,log_scale=True,binwidth=0.1,common_norm=False,alpha=0.7)
     
-    ax.set_title(region + ' (n=%i)'%(len(this_region)))
+    ax.set_title(region + ' (n=%i)'%(len(this_region)),fontsize=8)
     
+    ax.set_xlabel('timescale (ms)',fontsize=7)
+    ax.set_ylabel('percent',fontsize=7)
+    
+    ax.tick_params(axis='x',labelsize=7)
+    ax.tick_params(axis='y',labelsize=7)
+    
+    plt.setp(g.get_legend().get_texts(), fontsize='7') 
+    leg = ax.get_legend()
+    leg.set_title('')
+
     if region!='ACC':
         
         ax.get_legend().remove()
@@ -90,15 +100,25 @@ plt.show()
 
 #%%
 
-fig,axs = plt.subplots(2,3,sharex=True,sharey=True)
+fig,axs = plt.subplots(2,3,figsize=(6.5,3.75),sharex=True,sharey=True)
 
 for region, ax in zip(fred_brain_region_data.brain_region.unique(),axs.ravel()):
     
     this_region = fred_brain_region_data[fred_brain_region_data.brain_region==region]
     
-    sns.histplot(ax=ax,data=this_region,x='lat',hue='species',element='step',stat='percent',fill=False,common_norm=False,alpha=0.7)
+    g=sns.histplot(ax=ax,data=this_region,x='lat',hue='species',element='step',stat='percent',fill=False,common_norm=False,alpha=0.7,legend=True)
     
-    ax.set_title(region + ' (n=%i)'%(len(this_region)))
+    ax.set_title(region + ' (n=%i)'%(len(this_region)),fontsize=8)
+    
+    ax.set_xlabel('latency (ms)',fontsize=7)
+    ax.set_ylabel('percent',fontsize=7)
+    
+    ax.tick_params(axis='x',labelsize=7)
+    ax.tick_params(axis='y',labelsize=7)
+    
+    plt.setp(g.get_legend().get_texts(), fontsize='7') 
+    leg = ax.get_legend()
+    leg.set_title('')
     
     if region!='ACC':
         
