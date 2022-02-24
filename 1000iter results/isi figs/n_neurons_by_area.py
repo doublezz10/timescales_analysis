@@ -16,6 +16,8 @@ listofspecies = ['mouse','monkey','human']
 
 fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/fred_data.csv')
 fred_data = fred_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
+fred_data = fred_data[fred_data.dataset != 'faraut']
+
 fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
 
 # rename columns to match
@@ -67,18 +69,36 @@ brain_regions2 = ['Hippocampus','Amygdala','OFC','mPFC','ACC']
 fred_brain_region_data2['brain_region'] = pd.Categorical(fred_brain_region_data2['brain_region'], categories = brain_regions2 , ordered = True)
 
 #%%
+all_ns=[]
 
-fig= plt.figure(figsize=(3.4,2.6))
+for species in fred_brain_region_data2.species.unique():
+    
+    this_species = fred_brain_region_data2[fred_brain_region_data2.species==species]
+    
+    for brain_area in this_species.brain_region.unique():
+        
+        n_neurons = len(this_species[this_species.brain_region == brain_area])
 
-sns.countplot(x='brain_region',hue='species',data=fred_brain_region_data2)
+        all_ns.append((species,brain_area,n_neurons))
+        
+all_ns = pd.DataFrame(all_ns,columns=['species','brain_region','n_neurons'])
 
-plt.tick_params(axis='x', labelsize=7)
+listofspecies = ['mouse','monkey','human']
+
+all_ns['species'] = pd.Categorical(all_ns['species'], categories = listofspecies , ordered = True)
+
+#%%
+plt.figure(figsize=(1.75,3.2))
+
+sns.scatterplot(x='brain_region',y='n_neurons',hue='species',style='species',data=all_ns)
+
+plt.tick_params(axis='x', rotation=90,labelsize=7)
 plt.tick_params(axis='y',labelsize=7)
+
+plt.legend(loc='upper left',prop={'size':7})
 
 plt.xlabel(None)
 plt.ylabel('number of neurons',fontdict={'fontsize':7})
-
-plt.legend(title='species',fontsize=7)
 
 plt.tight_layout()
 

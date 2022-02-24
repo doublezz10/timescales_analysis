@@ -8,17 +8,27 @@ import seaborn as sns
 
 import matplotlib
 
+import statsmodels.formula.api as smf
+from statsmodels.stats.anova import anova_lm
+
 plt.style.use('seaborn')
 
 plt.rcParams['font.size'] = '7'
 
+#%% Load single-unit data
+
 listofspecies = ['mouse','monkey','human']
 
 fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/fred_data.csv')
+
+fred_data = fred_data[fred_data.species != 'rat']
+
 fred_data = fred_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
+
 fred_data = fred_data[fred_data.dataset != 'faraut']
 
 fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
+
 
 # rename columns to match
 
@@ -59,69 +69,42 @@ mpfc2 = mpfc.assign(brain_region='mPFC')
 ofc2 = ofc.assign(brain_region='OFC')
 lai2 = lai.assign(brain_region='LAI')
 
+fred_brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2))
 
-fred_brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2,lai2))
+fred_brain_region_data['species'] = pd.Categorical(fred_brain_region_data['species'], categories=listofspecies, ordered=True)
 
-fred_brain_region_data2 = fred_brain_region_data
+zscore = lambda x: (x - x.mean()) / x.std()
 
-#%% LAI figs, monkey only
-
-brain_regions = ['Hippocampus','Amygdala','LAI','OFC','mPFC','ACC']
-
-fred_brain_region_data['brain_region'] = pd.Categorical(fred_brain_region_data['brain_region'], categories = brain_regions , ordered = True)
-
-fig, axs = plt.subplots(1,2,figsize=(11,8.5))
-
-sns.lineplot(ax=axs[0],data=fred_brain_region_data,x='brain_region',y='tau',hue='species',ci=95,markers=True,legend=True)
-
-axs[0].set_xlabel('brain region')
-axs[0].set_ylabel('timescale (ms)')
-
-sns.lineplot(ax=axs[1],data=fred_brain_region_data,x='brain_region',y='lat',hue='species',ci=95,markers=True,legend=False)
-
-axs[1].set_xlabel('brain region')
-axs[1].set_ylabel('latency (ms)')
-
-plt.tight_layout()
-
-plt.show()
-
-#%% First fig (no LAI)
-
-brain_regions2 = ['Hippocampus','Amygdala','OFC','mPFC','ACC']
-
-fred_brain_region_data2['brain_region'] = pd.Categorical(fred_brain_region_data2['brain_region'], categories = brain_regions2 , ordered = True)
-
-fig, axs = plt.subplots(1,2,figsize=(4.475,2.75))
-
-sns.lineplot(ax=axs[0],data=fred_brain_region_data2[fred_brain_region_data2.brain_region != 'LAI'],x='brain_region',y='tau',hue='species',ci=95,markers=True,legend=True)
-
-axs[0].set_xlabel(None)
-axs[0].tick_params(axis='x', rotation=90,labelsize=7)
-axs[0].tick_params(axis='y',labelsize=7)
-axs[0].set_ylabel('timescale (ms)',fontsize=7)
-
-axs[0].legend(title='',prop={'size': 7})
-
-sns.lineplot(ax=axs[1],data=fred_brain_region_data2[fred_brain_region_data2.brain_region != 'LAI'],x='brain_region',y='lat',hue='species',ci=95,markers=True,legend=False)
-
-axs[1].set_xlabel(None)
-axs[1].tick_params(axis='x', rotation=90,labelsize=7)
-axs[1].tick_params(axis='y',labelsize=7)
-axs[1].set_ylabel('latency (ms)',fontsize=7)
-
-plt.tight_layout()
-
-plt.show()
-
-
-#%% Is latency correlated with fred's tau?
-
-sns.lmplot(data=fred_brain_region_data,x='lat',y='tau',hue='species',ci=95,legend=True)
-
-plt.xlabel('latency (ms)')
-plt.ylabel('timescale (ms)')
-
-plt.show()
+fred_brain_region_data.insert(14, 'zscore_fr', fred_brain_region_data.groupby(['species'])['FR'].transform(zscore))
+fred_brain_region_data.insert(14, 'zscore_fr_ds', fred_brain_region_data.groupby(['dataset'])['FR'].transform(zscore))
 
 #%%
+
+sns.violinplot(data=fred_brain_region_data,x='species',y='FR')
+
+model = smf.ols('FR ~ species',data=fred_brain_region_data)
+
+res = model.fit()
+
+print(res.summary())
+
+#%%
+
+sns.violinplot(data=fred_brain_region_data,x='species',y='zscore_fr')
+
+model = smf.ols('FR ~ species',data=fred_brain_region_data)
+
+res = model.fit()
+
+print(res.summary())
+
+#%%
+
+sns.violinplot(data=fred_brain_region_data,x='species',y='zscore_fr_ds')
+
+model = smf.ols('FR ~ species',data=fred_brain_region_data)
+
+res = model.fit()
+
+print(res.summary())
+# %%

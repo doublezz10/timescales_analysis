@@ -24,6 +24,7 @@ fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter res
 fred_data = fred_data[fred_data.species != 'rat']
 
 fred_data = fred_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
+fred_data = fred_data[fred_data.dataset != 'faraut']
 fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
 
 # rename columns to match
@@ -79,6 +80,7 @@ fred_pop_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter
 fred_pop_data = fred_pop_data[fred_pop_data.species != 'rat']
 
 fred_pop_data = fred_pop_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
+fred_data = fred_data[fred_data.dataset != 'faraut']
 fred_pop_data['species'] = pd.Categorical(fred_pop_data['species'], categories=listofspecies, ordered=True)
 
 # rename columns to match
@@ -186,13 +188,21 @@ model = smf.ols('tau ~ species',data=fred_brain_region_data[fred_brain_region_da
 res = model.fit()
 
 print(res.summary())
+
+# %% Amyg only
+
+model = smf.ols('lat ~ species',data=fred_brain_region_data[fred_brain_region_data.brain_region=='Amygdala'])
+
+res = model.fit()
+
+print(res.summary())
 # %% Individual
 
 by_individual = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/isi figs/all_individuals.csv')
 
 by_individual['individual'] = pd.factorize(by_individual.individual)[0] + 1
 
-model = smf.ols('tau ~ individual',data=by_individual[by_individual.dataset=='steinmetz'])
+model = smf.ols('tau ~ individual + brain_area',data=by_individual[by_individual.dataset=='steinmetz'])
 
 res = model.fit()
 
@@ -202,7 +212,7 @@ print(res.summary())
 
 by_individual['individual'] = pd.factorize(by_individual.individual)[0] + 1
 
-model = smf.ols('tau ~ individual + FR + brain_region',data=by_individual[by_individual.dataset=='steinmetz'])
+model = smf.ols('tau ~ individual + FR + brain_area',data=by_individual[by_individual.dataset=='steinmetz'])
 
 res = model.fit()
 
@@ -210,7 +220,7 @@ print(res.summary())
 
 #%%
 
-model = smf.ols('tau ~ individual',data=by_individual[by_individual.dataset=='chandravadia'])
+model = smf.ols('tau ~ individual + brain_area',data=by_individual[by_individual.dataset=='chandravadia'])
 
 res = model.fit()
 
@@ -224,6 +234,14 @@ lai = pd.read_csv('fred_lai.csv')
 ofc_lai = pd.concat((ofc,lai),ignore_index=True)
 
 model = smf.ols('fred_tau ~ specific_area', data = ofc_lai[ofc_lai.specific_area != '13b'])
+
+res = model.fit()
+
+print(res.summary())
+
+#%%
+
+model = smf.ols('fred_lat ~ specific_area', data = ofc_lai[ofc_lai.specific_area != '13b'])
 
 res = model.fit()
 

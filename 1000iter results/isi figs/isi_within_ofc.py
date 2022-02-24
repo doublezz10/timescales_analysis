@@ -26,27 +26,35 @@ ofc_lai = pd.concat((ofc,lai),ignore_index=True)
 ofc_lai['brain_area'] = ofc_lai['brain_area'].str.replace('LAI','AI')
 ofc_lai['specific_area'] = ofc_lai['specific_area'].str.replace('LAI','AI')
 
+listofspecies = ['mouse','monkey','human']
+ofc_lai['species'] = pd.Categorical(ofc_lai['species'], categories=listofspecies, ordered=True)
+
 #%% plot tau and lat by area
 
-order = ['11m','13l','13m','AI','11l']
+order = ['11m','11l','13m','13l','AI']
 
 ofc_lai['specific_area'] = pd.Categorical(ofc_lai['specific_area'],categories=order,ordered=True)
 
-plt.figure(figsize=(11,8.5))
+fig, axs = plt.subplots(1,2,figsize=(4,2.5))
 
-sns.pointplot(data=ofc_lai[ofc_lai.specific_area != '13b'],x='specific_area',y='fred_tau')
+sns.lineplot(ax=axs[0],data=ofc_lai[ofc_lai.specific_area != '13b'],x='specific_area',y='fred_tau')
 
-plt.xlabel('Cytoarchitectonic area')
-plt.ylabel('Timescale (ms)')
+axs[0].set_xlabel(None)
+axs[0].tick_params(axis='x', labelsize=7)
+axs[0].tick_params(axis='y',labelsize=7)
+axs[0].set_ylabel('timescale (ms)',fontsize=7)
 
-plt.show()
 
-plt.figure(figsize=(11,8.5))
+sns.lineplot(ax=axs[1],data=ofc_lai[ofc_lai.specific_area != '13b'],x='specific_area',y='fred_lat')
 
-sns.pointplot(data=ofc_lai[ofc_lai.specific_area != '13b'],x='specific_area',y='fred_lat')
+axs[1].set_xlabel(None)
+axs[1].tick_params(axis='x',labelsize=7)
+axs[1].tick_params(axis='y',labelsize=7)
+axs[1].set_ylabel('latency (ms)',fontsize=7)
 
-plt.xlabel('Cytoarchitectonic area')
-plt.ylabel('Latency (ms)')
+axs[1].set_ylim(20,120)
+
+plt.tight_layout()
 
 plt.show()
 
@@ -106,7 +114,7 @@ for unit in range(len(mouse_orb.unit.unique())):
         
         lat = np.array(this_unit.lat)[0]
         
-        to_append.append((dataset,species,brain_area,unit + 1,np.nan,np.nan,np.nan,np.nan,np.nan,fred_tau,lat,np.nan,np.nan,np.nan,'mouse orb'))
+        to_append.append((dataset,species,brain_area,unit + 1,np.nan,np.nan,np.nan,np.nan,np.nan,fred_tau,lat,np.nan,np.nan,np.nan,'mouse\nORB'))
         
         
     except:
@@ -129,7 +137,7 @@ for unit in range(len(human_ofc.unit.unique())):
         
         lat = np.array(this_unit.lat)[0]
         
-        to_append.append((dataset,species,brain_area,unit + 1,np.nan,np.nan,np.nan,np.nan,np.nan,fred_tau,lat,np.nan,np.nan,np.nan,'human ofc'))
+        to_append.append((dataset,species,brain_area,unit + 1,np.nan,np.nan,np.nan,np.nan,np.nan,fred_tau,lat,np.nan,np.nan,np.nan,'human\nOFC'))
         
         
     except:
@@ -142,18 +150,64 @@ all_3_species = pd.concat((ofc_lai,human_mouse),ignore_index=True)
 
 all_3_species = all_3_species[all_3_species.specific_area != '13b']
 
-order = ['11m','13l','13m','AI','mouse orb','human ofc','11l']
+#order = ['human\nofc','11m','11l','13m','13l','AI','mouse\norb']
 
-all_3_species['specific_area'] = pd.Categorical(all_3_species['specific_area'], categories = order , ordered = True)
+#all_3_species['specific_area'] = pd.Categorical(all_3_species['specific_area'], categories = order , ordered = True)
+
+#all_3_species['species'] = pd.Categorical(all_3_species['species'], categories=listofspecies, ordered=True)
 
 #%%
 
-sns.pointplot(data=all_3_species[all_3_species.specific_area != '13b'],x='specific_area',y='fred_tau')
+all_3_species.loc[all_3_species['specific_area'] == 'human\nOFC' , 'granularity'] = 'granular'
+all_3_species.loc[all_3_species['specific_area'] == '11m', 'granularity'] = 'granular'
+all_3_species.loc[all_3_species['specific_area']== '11l', 'granularity'] = 'granular'
+all_3_species.loc[all_3_species['specific_area'] =='13m', 'granularity'] = 'dysgranular'
+all_3_species.loc[all_3_species['specific_area'] == '13l', 'granularity'] = 'dysgranular'
+all_3_species.loc[all_3_species['specific_area'] =='mouse\nORB', 'granularity'] = 'agranular'
+all_3_species.loc[all_3_species['specific_area'] =='AI', 'granularity'] = 'agranular'
+
+all_3_species['granularity'] = pd.Categorical(all_3_species['granularity'], categories=['granular','dysgranular','agranular'], ordered=True)
+
+
+#%%
+
+fig, axs = plt.subplots(1,4,figsize=(6.85,3), gridspec_kw={'width_ratios': [2, 1, 2, 1]},sharey=True)
+
+sns.pointplot(ax=axs[0],data=all_3_species[all_3_species.species == 'monkey'],x='specific_area',y='fred_tau',hue='granularity',order=['11m','11l','13m','13l','AI'],palette="Set2")
+
+axs[0].set_xlabel(None)
+axs[0].tick_params(axis='x', labelsize=7)
+axs[0].tick_params(axis='y',labelsize=7)
+axs[0].set_ylabel('timescale (ms)',fontsize=7)
+axs[0].legend(title='',prop={'size':7})
+
+
+sns.pointplot(ax=axs[1],data=all_3_species[all_3_species.species != 'monkey'],x='specific_area',y='fred_tau',hue='granularity',palette="Set2",order=['human\nOFC','mouse\nORB'])
+axs[1].tick_params(axis='x',labelsize=7)
+axs[1].tick_params(axis='y',labelsize=7)
+axs[1].set_xlabel(None)
+axs[1].set_ylabel(None)
+axs[1].get_legend().remove()
+
+
+sns.pointplot(ax=axs[2],data=all_3_species[all_3_species.species == 'monkey'],x='specific_area',y='fred_lat',hue='granularity',order=['11m','11l','13m','13l','AI'],palette="Set2")
+
+axs[2].set_xlabel(None)
+axs[2].tick_params(axis='x',labelsize=7)
+axs[2].tick_params(axis='y',labelsize=7)
+axs[2].set_ylabel('latency (ms)',fontsize=7)
+axs[2].get_legend().remove()
+
+
+sns.pointplot(ax=axs[3],data=all_3_species[all_3_species.species != 'monkey'],x='specific_area',y='fred_lat',hue='granularity',palette="Set2",order=['human\nOFC','mouse\nORB'])
+
+axs[3].tick_params(axis='x',labelsize=7)
+axs[3].tick_params(axis='y',labelsize=7)
+axs[3].set_xlabel(None)
+axs[3].set_ylabel(None)
+axs[3].get_legend().remove()
+
+plt.tight_layout()
 
 plt.show()
-
-sns.pointplot(data=all_3_species[all_3_species.specific_area != '13b'],x='specific_area',y='fred_lat')
-
-plt.show()
-
 # %%

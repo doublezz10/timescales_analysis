@@ -24,6 +24,8 @@ fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter res
 fred_data = fred_data[fred_data.species != 'rat']
 
 fred_data = fred_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
+fred_data = fred_data[fred_data.dataset != 'faraut']
+
 fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
 
 # rename columns to match
@@ -125,7 +127,9 @@ fred_pop_brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2))
 
 #%% whole dataset plot by fr
 
-sns.relplot(data=fred_brain_region_data,x='FR',y='tau',hue='species',col='brain_region',col_wrap=3)
+sns.lmplot(data=fred_brain_region_data,x='FR',y='tau',hue='species',col='brain_region',col_wrap=3,scatter_kws={'s':5, 'alpha': 0.5})
+
+plt.ylim(0,1000)
 
 plt.show()
 # %% z-score FR by species
@@ -134,31 +138,62 @@ zscore = lambda x: (x - x.mean()) / x.std()
 
 fred_brain_region_data.insert(14, 'zscore_fr', fred_brain_region_data.groupby(['species'])['FR'].transform(zscore))
 
-sns.relplot(data=fred_brain_region_data,x='zscore_fr',y='tau',hue='species',col='brain_region',col_wrap=3)
+sns.lmplot(data=fred_brain_region_data,x='zscore_fr',y='tau',hue='species',col='brain_region',col_wrap=3,scatter_kws={'s':5, 'alpha': 0.5})
+
+plt.ylim(0,1000)
 
 plt.show()
 
 # %%
 
-sns.relplot(data=fred_brain_region_data,x='FR',y='lat',hue='species',col='brain_region',col_wrap=3)
+sns.lmplot(data=fred_brain_region_data,x='FR',y='lat',hue='species',col='brain_region',col_wrap=3,scatter_kws={'s':5, 'alpha': 0.5})
+
+plt.ylim(0,1000)
 
 plt.show()
 
-# %% z-score FR by species
+# %%
 
-sns.relplot(data=fred_brain_region_data,x='zscore_fr',y='lat',hue='species',col='brain_region',col_wrap=3)
+sns.lmplot(data=fred_brain_region_data,x='zscore_fr',y='lat',hue='species',col='brain_region',col_wrap=3,scatter_kws={'s':5, 'alpha': 0.5})
+
+plt.ylim(0,1000)
 
 plt.show()
 
-#%%
+#%% z-score within dataset
 
 fred_brain_region_data.insert(14, 'zscore_fr_ds', fred_brain_region_data.groupby(['dataset'])['FR'].transform(zscore))
 
-sns.relplot(data=fred_brain_region_data,x='zscore_fr_ds',y='tau',hue='species',col='brain_region',col_wrap=3)
+sns.lmplot(data=fred_brain_region_data,x='zscore_fr_ds',y='tau',hue='species',col='brain_region',col_wrap=3,scatter_kws={'s':5, 'alpha': 0.5})
+
+plt.ylim(0,1000)
 
 plt.show()
 
-sns.relplot(data=fred_brain_region_data,x='zscore_fr_ds',y='lat',hue='species',col='brain_region',col_wrap=3)
+sns.lmplot(data=fred_brain_region_data,x='zscore_fr_ds',y='lat',hue='species',col='brain_region',col_wrap=3,scatter_kws={'s':5, 'alpha': 0.5})
+
+plt.ylim(0,1000)
 
 plt.show()
+# %%
+
+by_individual = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/isi figs/all_individuals.csv')
+
+by_individual['individual'] = pd.factorize(by_individual.individual)[0] + 1
+
+#%%
+
+sns.catplot(data=by_individual[by_individual.dataset=='steinmetz'],x='individual',y='tau',col='brain_area',col_wrap=3,kind='box')
+
+plt.xticks([])
+
+plt.show()
+
+sns.catplot(data=by_individual[by_individual.dataset=='chandravadia'],x='individual',y='tau',col='brain_area',kind='box')
+
+plt.xticks([])
+
+plt.show()
+
+
 # %%

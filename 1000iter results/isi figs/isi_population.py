@@ -22,6 +22,8 @@ fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter res
 fred_data = fred_data[fred_data.species != 'rat']
 
 fred_data = fred_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
+fred_data = fred_data[fred_data.dataset != 'faraut']
+
 fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
 
 # rename columns to match
@@ -85,8 +87,6 @@ plt.tick_params(axis='y',labelsize=7)
 plt.ylabel('timescale (ms)',fontsize=7)
 
 plt.legend(title='species',prop={'size': 7})
-
-plt.grid(False)
 
 plt.show()
 

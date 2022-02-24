@@ -1,19 +1,12 @@
 #%%
 
-"""
-Created on Tue Mar 30 15:16:34 2021
-
-@author: zachz
-"""
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 import seaborn as sns
 
-from scipy.stats import linregress
-
+from scipy.stats import linregress, pearsonr
 
 plt.style.use('seaborn')
 
@@ -78,6 +71,8 @@ del mean_tau, sd_tau, mean_r2, sd_r2, mean_fr, sd_fr, n
 
 fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/fred_data.csv')
 fred_data = fred_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
+fred_data = fred_data[fred_data.dataset != 'faraut']
+
 fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
 
 # rename columns to match
@@ -158,7 +153,7 @@ for dataset in all_means.dataset.unique():
             
 matching_units = pd.DataFrame(matching_units,columns=['dataset','species','brain_area','unit','zach_tau','zach_tau_sd','zach_fr','zach_n','zach_r2','fred_tau','fred_fr','fred_r2','tau_diff'])
 
-listofspecies = ['mouse','rat','monkey','human']
+listofspecies = ['mouse','monkey','human']
 
 matching_units['species'] = pd.Categorical(matching_units['species'], categories = listofspecies , ordered = True)
 
@@ -185,136 +180,59 @@ ofc2 = ofc.assign(brain_region='OFC')
 
 brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2))
 
-#%% one big subplot
-
-plt.figure(figsize=(11,8.5))
-
-g = sns.FacetGrid(data=brain_region_data,hue='dataset',col='brain_region',col_wrap=3,legend_out=True)
-g.map_dataframe(sns.regplot,x='zach_tau',y='fred_tau',scatter_kws={'s':5, 'alpha': 0.5},ci=None)
-
-for a in g.axes:
-    a.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-    a.set_xlabel('iter_tau')
-    a.set_ylabel('isi_tau')
-    a.legend()
-plt.tight_layout()
-
-plt.show()
-
-#%% Prettier way to do it
-plt.figure(figsize=(11,8.5))
-
-sns.lmplot(data=brain_region_data,x='zach_tau',y='fred_tau',hue='dataset',col='brain_region',col_wrap=3,ci=95,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-_,_,r2,p,_ = linregress(brain_region_data.zach_tau,brain_region_data.fred_tau)
-
-print('R^2 = %.2f, p = %.2f' %(r2,p))
-
-#%% Not separate by brain_area
-
-plt.figure(figsize=(11,8.5))
-
-sns.lmplot(data=brain_region_data,x='zach_tau',y='fred_tau',hue='dataset',ci=95,scatter_kws={'s':5, 'alpha': 0.5})
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-
-plt.xlabel('Iteratively fit tau (ms)')
-plt.ylabel('ISI-based tau (ms)')
-
-plt.show()
-
-#%% Do correlation plots
-
-plt.figure(figsize=(11,8.5))
-sns.lmplot(data=acc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
-sns.scatterplot(data=acc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend=False)
-plt.title('ACC')
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-plt.legend(loc='upper left')
-plt.xlabel('Zach tau (ms)')
-plt.ylabel('Fred tau (ms)')
-plt.show()
-
-plt.figure(figsize=(11,8.5))
-sns.lmplot(data=amyg,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
-sns.scatterplot(data=amyg,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend=False)
-plt.title('Amygdala')
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-plt.legend(loc='upper left')
-plt.xlabel('Zach tau (ms)')
-plt.ylabel('Fred tau (ms)')
-plt.show()
-
-plt.figure(figsize=(11,8.5))
-sns.lmplot(data=hc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
-sns.scatterplot(data=hc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend=False)
-plt.title('Hippocampus')
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-plt.legend(loc='upper left')
-plt.xlabel('Zach tau (ms)')
-plt.ylabel('Fred tau (ms)')
-plt.show()
-
-plt.figure(figsize=(11,8.5))
-sns.lmplot(data=mpfc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
-sns.scatterplot(data=mpfc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend=False)
-plt.title('mPFC')
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-plt.legend(loc='upper left')
-plt.xlabel('Zach tau (ms)')
-plt.ylabel('Fred tau (ms)')
-plt.show()
-
-plt.figure(figsize=(11,8.5))
-sns.lmplot(data=ofc,x='zach_tau',y='fred_tau',hue='dataset',scatter=False,legend=False)
-sns.scatterplot(data=ofc,x='zach_tau',y='fred_tau',hue='dataset',alpha=0.4,legend=False)
-plt.title('OFC')
-plt.plot(range(1000),range(1000),linestyle='--',color='black',label='identity')
-plt.legend(loc='upper left')
-plt.xlabel('Zach tau (ms)')
-plt.ylabel('Fred tau (ms)')
-plt.show()
-
-#%% Is tau diff related to anything
-
-sns.lmplot(data=brain_region_data,x='zach_r2',y='tau_diff',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-sns.lmplot(data=brain_region_data,x='fred_r2',y='tau_diff',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-sns.lmplot(data=brain_region_data,x='zach_r2',y='fred_r2',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-sns.lmplot(data=brain_region_data,x='zach_tau',y='tau_diff',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
-sns.lmplot(data=brain_region_data,x='fred_tau',y='tau_diff',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
-
-plt.show()
-
 #%%
 
-sns.lmplot(data=brain_region_data,x='zach_fr',y='zach_r2',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
+corrs = []
 
-plt.show()
+for species in listofspecies:
+    
+    this_species = brain_region_data[brain_region_data.species==species]
 
-sns.lmplot(data=brain_region_data,x='fred_fr',y='fred_r2',hue='dataset',col='brain_region',col_wrap=3,ci=None,scatter_kws={'s':5, 'alpha': 0.5})
+    for region in this_species.brain_region.unique():
+        
+        fred_taus = this_species[this_species.brain_region == region]['fred_tau']
+        zach_taus = this_species[this_species.brain_region == region]['zach_tau']
+        
+        corr = np.corrcoef(fred_taus,zach_taus)[0,1]
+        p = pearsonr(fred_taus,zach_taus)[1]
+        
+        corrs.append((species,region,corr,p))
+        
+corrs = pd.DataFrame(corrs,columns=['species','area','corr','pval'])
 
-plt.show()
+corrs_ = corrs.pivot('species','area','pval')
 
 #%%
+        
+plt.figure(figsize=(3,3))
 
-import statsmodels.formula.api as smf
+ax = sns.heatmap(corrs_,center=0.05,vmin=0,vmax=1,cmap='PiYG')
 
-model = smf.glm('zach_tau ~ fred_tau + fred_fr + zach_fr',data=brain_region_data)
+cbar = ax.collections[0].colorbar
 
-model = model.fit()
+cbar.ax.tick_params(labelsize=7)
+cbar.ax.set_ylabel('p-value of correlation',size=7)
 
-print(model.summary())
+plt.tick_params(axis='x',rotation=45,labelsize=7)
+plt.tick_params(axis='y',labelsize=7)
+
+plt.xlabel('')
+plt.ylabel('')
+
+plt.show()
+    
+#%%
+
+sns.lmplot(data=brain_region_data[brain_region_data.brain_region=='Amygdala'],x='fred_tau',y='zach_tau',hue='species',legend=False,scatter_kws={'s':6,'alpha':0.7},height=3.2,aspect=1)
+
+
+plt.xlabel('ISI timescale (ms)',fontsize=7)
+plt.ylabel('ITEM timescale (ms)',fontsize=7)
+plt.tick_params(axis='x',labelsize=7)
+plt.tick_params(axis='y',labelsize=7)
+
+plt.xlim(0,1000)
+plt.ylim(0,1000)
+           
+plt.show()
 # %%
