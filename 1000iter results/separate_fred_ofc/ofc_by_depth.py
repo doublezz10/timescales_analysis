@@ -19,7 +19,7 @@ plt.rcParams['font.size'] = '7'
 
 #%%
 
-ofc = pd.read_csv('fred_ofc.csv')
+ofc = pd.read_csv('fred_ofc_isi.csv')
 
 areas = ['11l','11m','13l','13m']
 

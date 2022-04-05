@@ -11,6 +11,8 @@ import matplotlib
 import statsmodels.formula.api as smf
 from statsmodels.stats.anova import anova_lm
 
+from scipy.stats import levene
+
 plt.style.use('seaborn')
 
 plt.rcParams['font.size'] = '7'
@@ -19,55 +21,11 @@ plt.rcParams['font.size'] = '7'
 
 listofspecies = ['mouse','monkey','human']
 
-fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/fred_data.csv')
+fred_data = pd.read_csv('/Users/zachz/Library/CloudStorage/Box-Box/Timescales across species/filtered_isi_data_with_lai_vl.csv')
 
-fred_data = fred_data[fred_data.species != 'rat']
-
-fred_data = fred_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
-fred_data = fred_data[fred_data.dataset != 'faraut']
 fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
 
-# rename columns to match
-
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('hippocampus','hc')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('mPFC','mpfc')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('ventralStriatum','vStriatum')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('AMG','amygdala')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('Cd','caudate')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('OFC','ofc')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('PUT','putamen')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('hippocampus2','hc2')
-
-fred_data['dataset'] = fred_data['dataset'].str.replace('stein','steinmetz')
-
-fred_data = fred_data[fred_data.r2 >= 0.5]
-
-fred_data = fred_data[(fred_data.tau >=10) & (fred_data.tau <= 1000)]
-
-fred_data = fred_data[fred_data.keep == 1]
-
-acc = fred_data[(fred_data.brain_area == 'acc') | (fred_data.brain_area == 'dACC') | (fred_data.brain_area == 'aca') | (fred_data.brain_area == 'mcc')]
-
-amyg = fred_data[(fred_data.brain_area == 'amygdala') | (fred_data.brain_area == 'central') | (fred_data.brain_area == 'bla')]
-
-hc = fred_data[(fred_data.brain_area == 'hc') | (fred_data.brain_area == 'ca1') | (fred_data.brain_area == 'ca2') | (fred_data.brain_area == 'ca3') | (fred_data.brain_area == 'dg')]
-
-mpfc = fred_data[(fred_data.brain_area == 'mpfc') | (fred_data.brain_area == 'pl') | (fred_data.brain_area == 'ila') | (fred_data.brain_area == 'scACC')]
-
-ofc = fred_data[(fred_data.brain_area == 'ofc') | (fred_data.brain_area == 'orb')]
-
-lai = fred_data[fred_data.brain_area == 'LAI']
-
-
-acc2 = acc.assign(brain_region='ACC')
-amyg2 = amyg.assign(brain_region='Amygdala')
-hc2 = hc.assign(brain_region='Hippocampus')
-mpfc2 = mpfc.assign(brain_region='mPFC')
-ofc2 = ofc.assign(brain_region='OFC')
-lai2 = lai.assign(brain_region='LAI')
-
-
-fred_brain_region_data = pd.concat((acc2,amyg2,hc2,mpfc2,ofc2,lai2))
+fred_brain_region_data = fred_data
 
 #%%
 
@@ -100,6 +58,31 @@ plt.show()
 
 #%%
 
+for brain_region in fred_brain_region_data.brain_region.unique():
+    
+    if brain_region in ['LAI', 'vlPFC']:
+        
+        pass
+    
+    elif brain_region == 'mPFC':
+        
+        this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+    
+        p = levene(this_region[this_region.species=='mouse'].tau,this_region[this_region.species=='monkey'].tau)
+    
+        print(brain_region)
+        print(p)
+    else:
+    
+        this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+        
+        p = levene(this_region[this_region.species=='mouse'].tau,this_region[this_region.species=='monkey'].tau,this_region[this_region.species=='human'].tau)
+        
+        print(brain_region)
+        print(p)
+
+#%%
+
 fig,axs = plt.subplots(2,3,figsize=(6.5,3.75),sharex=True,sharey=True)
 
 for region, ax in zip(fred_brain_region_data.brain_region.unique(),axs.ravel()):
@@ -127,4 +110,95 @@ for region, ax in zip(fred_brain_region_data.brain_region.unique(),axs.ravel()):
 plt.tight_layout()
 plt.show()
 
-# %%
+#%%
+
+for brain_region in fred_brain_region_data.brain_region.unique():
+    
+    if brain_region in ['LAI', 'vlPFC']:
+        
+        pass
+    
+    elif brain_region == 'mPFC':
+        
+        this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+    
+        p = levene(this_region[this_region.species=='mouse'].lat,this_region[this_region.species=='monkey'].lat)
+    
+        print(brain_region)
+        print(p)
+    else:
+    
+        this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+        
+        p = levene(this_region[this_region.species=='mouse'].lat,this_region[this_region.species=='monkey'].lat,this_region[this_region.species=='human'].lat)
+        
+        print(brain_region)
+        print(p)
+
+# %% how do variances compare?
+
+from scipy.stats import levene
+
+for brain_region in fred_brain_region_data.brain_region.unique():
+    
+    this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+    
+    mouse = this_region[this_region.species=='mouse'].tau.to_numpy()
+    monkey = this_region[this_region.species=='monkey'].tau.to_numpy()
+    
+    if brain_region == 'mPFC':
+        
+        stat, p = levene(mouse,monkey,center='median')
+        
+        print(brain_region)
+        
+        print('F(%i,%i) = %.2f' %(1,len(mouse)+len(monkey),stat))
+        
+        print('tau p-val = %.3f' %p)
+        
+    elif brain_region in ['LAI','vlPFC']:
+        
+        pass
+        
+    else:
+        
+        human = this_region[this_region.species=='human'].tau.to_numpy()
+        
+        stat, p = levene(mouse,monkey,human,center='median')
+        
+        print(brain_region)
+        print('F(%i,%i) = %.2f' %(2,len(mouse)+len(monkey)+len(human),stat))
+        print('tau p-val = %.3f' %p)
+        
+#%%
+
+for brain_region in fred_brain_region_data.brain_region.unique():
+    
+    this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+    
+    mouse = this_region[this_region.species=='mouse'].lat.to_numpy()
+    monkey = this_region[this_region.species=='monkey'].lat.to_numpy()
+    
+    if brain_region == 'mPFC':
+        
+        stat, p = levene(mouse,monkey,center='median')
+        
+        print(brain_region)
+        print('F(%i,%i) = %.2f' %(1,len(mouse)+len(monkey),stat))
+        print('lat p-val = %.3f' %p)
+        
+    elif brain_region in ['LAI','vlPFC']:
+        
+        pass
+        
+    else:
+        
+        human = this_region[this_region.species=='human'].lat.to_numpy()
+        
+        stat, p = levene(mouse,monkey,human,center='median')
+        
+        print(brain_region)
+        print('F(%i,%i) = %.2f' %(2,len(mouse)+len(monkey)+len(human),stat))
+        print('lat p-val = %.3f' %p)
+        
+#%%

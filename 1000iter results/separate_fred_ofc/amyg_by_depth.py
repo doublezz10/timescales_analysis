@@ -16,7 +16,7 @@ plt.style.use('seaborn')
 
 #%%
 
-amyg = pd.read_csv('fred_amyg.csv')
+amyg = pd.read_csv('fred_amyg_isi.csv')
 
 #%%
 

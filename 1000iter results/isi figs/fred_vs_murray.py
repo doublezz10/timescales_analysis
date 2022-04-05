@@ -15,36 +15,18 @@ plt.style.use('seaborn')
 old_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/results.csv')
 
 old_data = old_data[old_data.tau < 1000]
-old_data = old_data[old_data.r2 < 0.5]
+old_data = old_data[old_data.r2 > 0.5]
 
 
 #%% Load in Fred's data
 
 listofspecies = ['mouse','monkey','human']
 
-fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/fred_data.csv')
-fred_data = fred_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
-fred_data = fred_data[fred_data.dataset != 'faraut']
+fred_data = pd.read_csv('/Users/zachz/Library/CloudStorage/Box-Box/Timescales across species/filtered_isi_data.csv')
 
 fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
 
-# rename columns to match
-
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('hippocampus','hc')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('mPFC','mpfc')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('ventralStriatum','vStriatum')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('Cd','caudate')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('OFC','ofc')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('PUT','putamen')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('hippocampus2','hc2')
-
-fred_data = fred_data.replace(['amyg','AMG'],'amygdala')
-
-fred_data['dataset'] = fred_data['dataset'].str.replace('stein','steinmetz')
-
-fred_data = fred_data[fred_data.r2 >= 0.5]
-
-fred_data = fred_data[(fred_data.tau >=10) & (fred_data.tau <= 1000)]
+fred_data['unit'] = fred_data['unit'] - 1
 
 #%%
 
@@ -64,13 +46,15 @@ for dataset in old_data.dataset.unique():
 
         for unit_n in these_data.unit.unique():
     
-            this_unit = these_data[these_data.unit == unit_n]
+            this_unit = these_data[these_data.unit == unit_n ]
             
             fred_unit = fred_these_data[fred_these_data.unit == unit_n]
             
-            species = this_unit.iloc[0]['species']
+            if len(this_unit)==0:
+                
+                pass
             
-            if len(fred_unit) == 0:
+            elif len(fred_unit) == 0:
                 
                 pass
             
@@ -83,6 +67,8 @@ for dataset in old_data.dataset.unique():
                 pass
             
             else:
+                
+                species = this_unit.iloc[0]['species']
                 
                 zach_tau = this_unit['tau'].values[0]
                 zach_fr = this_unit['fr'].values[0]
@@ -150,18 +136,20 @@ for species in listofspecies:
         
 corrs = pd.DataFrame(corrs,columns=['species','area','corr','pval'])
 
-corrs_ = corrs.pivot('species','area','pval')
+corrs_ = corrs.pivot('species','area','corr')
+
+pvals = corrs.pivot('species','area','pval')
 
 #%%
         
 plt.figure(figsize=(3,3))
 
-ax = sns.heatmap(corrs_,center=0.01,vmin=0,vmax=1,cmap='PiYG')
+ax = sns.heatmap(corrs_,vmin=0,vmax=1,annot = pvals)
 
 cbar = ax.collections[0].colorbar
 
 cbar.ax.tick_params(labelsize=7)
-cbar.ax.set_ylabel('p-value of correlation',size=7)
+cbar.ax.set_ylabel('correlation',size=7)
 
 plt.tick_params(axis='x',rotation=45,labelsize=7)
 plt.tick_params(axis='y',labelsize=7)

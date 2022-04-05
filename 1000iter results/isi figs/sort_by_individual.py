@@ -5,31 +5,12 @@ import pandas as pd
 
 listofspecies = ['mouse','monkey','human']
 
-fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/fred_data.csv')
+fred_data = pd.read_csv('/Users/zachz/Library/CloudStorage/Box-Box/Timescales across species/filtered_isi_data.csv')
 
-fred_data = fred_data[fred_data.species != 'rat']
-
-fred_data = fred_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
 fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
 
-# rename columns to match
+data = fred_data
 
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('hippocampus','hc')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('mPFC','mpfc')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('ventralStriatum','vStriatum')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('AMG','amygdala')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('Cd','caudate')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('OFC','ofc')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('PUT','putamen')
-fred_data['brain_area'] = fred_data['brain_area'].str.replace('hippocampus2','hc2')
-
-fred_data['dataset'] = fred_data['dataset'].str.replace('stein','steinmetz')
-
-fred_data = fred_data[fred_data.r2 >= 0.5]
-
-fred_data = fred_data[(fred_data.tau >=10) & (fred_data.tau <= 1000)]
-
-data = fred_data[fred_data.keep == 1]
 
 #%%
 

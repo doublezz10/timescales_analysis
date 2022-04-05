@@ -8,6 +8,8 @@ import seaborn as sns
 
 from scipy.stats import linregress, pearsonr
 
+plt.rcParams['font.size'] = '7'
+
 plt.style.use('seaborn')
 
 #%% Load in data, filter
@@ -19,6 +21,16 @@ data = raw_data[(raw_data.tau >= 10) & (raw_data.tau <= 1000)]
 data = data[(data.r2 >= 0.5)]
 
 data = data[data.species != 'rat']
+
+# data = data.replace(['pl','il'],['mpfc','mpfc'])
+
+# mpfc = data[data.brain_area=='mpfc']
+
+# mpfc['unit'] = np.array(range(len(mpfc)))
+
+# data = data.loc[data["brain_area"] != 'mpfc']
+
+# data = pd.concat((data,mpfc))
 
 listofspecies = ['mouse','monkey','human']
 
@@ -69,6 +81,8 @@ del mean_tau, sd_tau, mean_r2, sd_r2, mean_fr, sd_fr, n
 
 #%% Load in Fred's data
 
+#%% Load in Fred's data
+
 fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/fred_data.csv')
 fred_data = fred_data.rename(columns={'unitID': 'unit', 'name': 'dataset', 'area': 'brain_area'})
 fred_data = fred_data[fred_data.dataset != 'faraut']
@@ -94,7 +108,6 @@ fred_data = fred_data[fred_data.r2 >= 0.5]
 fred_data = fred_data[(fred_data.tau >=10) & (fred_data.tau <= 1000)]
 
 all_means['brain_area'] = all_means['brain_area'].str.replace('hippocampus','hc')
-
 #%% Loop through and pull out matching taus
 
 matching_units = []
@@ -200,18 +213,20 @@ for species in listofspecies:
         
 corrs = pd.DataFrame(corrs,columns=['species','area','corr','pval'])
 
-corrs_ = corrs.pivot('species','area','pval')
+corrs_ = corrs.pivot('species','area','corr')
+
+pvals = corrs.pivot('species','area','pval')
 
 #%%
         
 plt.figure(figsize=(3,3))
 
-ax = sns.heatmap(corrs_,center=0.05,vmin=0,vmax=1,cmap='PiYG')
+ax = sns.heatmap(corrs_,vmin=0,vmax=1,annot=pvals)
 
 cbar = ax.collections[0].colorbar
 
 cbar.ax.tick_params(labelsize=7)
-cbar.ax.set_ylabel('p-value of correlation',size=7)
+cbar.ax.set_ylabel('correlation',size=7)
 
 plt.tick_params(axis='x',rotation=45,labelsize=7)
 plt.tick_params(axis='y',labelsize=7)
@@ -223,7 +238,7 @@ plt.show()
     
 #%%
 
-sns.lmplot(data=brain_region_data[brain_region_data.brain_region=='Amygdala'],x='fred_tau',y='zach_tau',hue='species',legend=False,scatter_kws={'s':6,'alpha':0.7},height=3.2,aspect=1)
+sns.lmplot(data=brain_region_data[brain_region_data.brain_region=='mPFC'],x='fred_tau',y='zach_tau',hue='species',legend=False,scatter_kws={'s':6,'alpha':0.7},height=3.2,aspect=1)
 
 
 plt.xlabel('ISI timescale (ms)',fontsize=7)
