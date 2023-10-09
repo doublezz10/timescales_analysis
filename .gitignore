@@ -147,3 +147,4 @@ dmypy.json
 *.Rhistory
 *.mat
 *.docx
+.Rproj.user
