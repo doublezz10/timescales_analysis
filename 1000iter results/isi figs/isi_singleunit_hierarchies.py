@@ -14,7 +14,7 @@ plt.rcParams['font.size'] = '7'
 
 listofspecies = ['mouse','monkey','human']
 
-fred_data = pd.read_csv('/Users/zachz/Library/CloudStorage/Box-Box/Timescales across species/filtered_isi_data.csv')
+fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/isi figs/filtered_isi_data.csv')
 
 fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
 

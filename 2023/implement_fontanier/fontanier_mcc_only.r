@@ -15,7 +15,7 @@ data = readMat('/Users/zachz/Library/Mobile Documents/com~apple~CloudDocs/Timesc
 spiketimes = data$spikes
 cell_info = data$cell.info
 
-for (unit in 1:length(spiketimes)) {
+for (unit in 1:1) {
   
   # list of spiketimes in seconds
   spiketimeseries = unlist(lapply(spiketimes[unit], unlist, use.names=FALSE))

@@ -13,7 +13,7 @@ data = pd.read_csv('processed_data.csv')
 data['species'] = pd.Categorical(data['species'], categories = ['mouse','monkey','human'] , ordered = True)
 
 
-filt_data = data[np.logical_and(data.tau < 1000, data.fr > 1)]
+filt_data = data[np.logical_and(data.tau < 1000, data.r2 > 0.5)]
 #filt_data = filt_data[filt_data.tau > 10]
 
 brain_regions = ['Hippocampus','OFC','Amygdala','mPFC','ACC']

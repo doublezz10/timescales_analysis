@@ -19,31 +19,37 @@ plt.rcParams['font.size'] = '7'
 
 #%%
 
-listofspecies = ['mouse','monkey','human']
+data = pd.read_csv('processed_data.csv')
 
-fred_data = pd.read_csv('/Users/zachz/Documents/timescales_analysis/1000iter results/isi figs/filtered_isi_data_with_lai_vl.csv')
+data['species'] = pd.Categorical(data['species'], categories = ['mouse','monkey','human'] , ordered = True)
 
-fred_data['species'] = pd.Categorical(fred_data['species'], categories=listofspecies, ordered=True)
 
-fred_brain_region_data = fred_data
+filt_data = data[np.logical_and(data.tau < 1000, data.r2 > 0.5)]
+filt_data = filt_data[filt_data.tau > 10]
+
+brain_regions = ['Hippocampus','OFC','Amygdala','mPFC','ACC']
+
+filt_data['brain_region'] = pd.Categorical(filt_data['brain_region'], categories = brain_regions , ordered = True)
+
 
 #%%
 
-fig,axs = plt.subplots(2,3,figsize=(5,3.5),sharex=True,sharey=True)
+fig,axs = plt.subplots(1,5,figsize=(7,2),sharex=True,sharey=True)
 
-for region, ax in zip(fred_brain_region_data.brain_region.unique(),axs.ravel()):
+for region, ax in zip(brain_regions,axs.ravel()):
         
-    this_region = fred_brain_region_data[fred_brain_region_data.brain_region==region]
+    this_region = filt_data[filt_data.brain_region==region]
     
-    g=sns.histplot(ax=ax,data=this_region,x='tau',hue='species',element='step',stat='percent',fill=False,log_scale=True,binwidth=0.1,common_norm=False,alpha=0.7)
+    g=sns.kdeplot(ax=ax,data=this_region,x='tau',hue='species',fill=False,log_scale=True,common_norm=False,alpha=0.7)
     
     ax.set_title(region + ' (n=%i)'%(len(this_region)),fontsize=8)
     
     ax.set_xlabel('timescale (ms)',fontsize=7)
-    ax.set_ylabel('percent',fontsize=7)
+    ax.set_ylabel('density',fontsize=7)
     
     ax.tick_params(axis='x',labelsize=7)
     ax.tick_params(axis='y',labelsize=7)
+    #ax.xaxis.set_label_position('top')
     
     plt.setp(g.get_legend().get_texts(), fontsize='7') 
     leg = ax.get_legend()
@@ -58,7 +64,7 @@ plt.show()
 
 #%%
 
-for brain_region in fred_brain_region_data.brain_region.unique():
+for brain_region in filt_data.brain_region.unique():
     
     if brain_region in ['LAI', 'vlPFC']:
         
@@ -66,7 +72,7 @@ for brain_region in fred_brain_region_data.brain_region.unique():
     
     elif brain_region == 'mPFC':
         
-        this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+        this_region = filt_data[filt_data.brain_region==brain_region]
     
         p = levene(this_region[this_region.species=='mouse'].tau,this_region[this_region.species=='monkey'].tau)
     
@@ -74,7 +80,7 @@ for brain_region in fred_brain_region_data.brain_region.unique():
         print(p)
     else:
     
-        this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+        this_region = filt_data[filt_data.brain_region==brain_region]
         
         p = levene(this_region[this_region.species=='mouse'].tau,this_region[this_region.species=='monkey'].tau,this_region[this_region.species=='human'].tau)
         
@@ -83,18 +89,20 @@ for brain_region in fred_brain_region_data.brain_region.unique():
 
 #%%
 
-fig,axs = plt.subplots(2,3,figsize=(5,3.5),sharex=True,sharey=True)
+fig,axs = plt.subplots(1,5,figsize=(7,2),sharex=True,sharey=True)
 
-for region, ax in zip(fred_brain_region_data.brain_region.unique(),axs.ravel()):
+for region, ax in zip(brain_regions,axs.ravel()):
     
-    this_region = fred_brain_region_data[fred_brain_region_data.brain_region==region]
+    this_region = filt_data[filt_data.brain_region==region]
     
-    g=sns.histplot(ax=ax,data=this_region,x='lat',hue='species',element='step',stat='percent',fill=False,common_norm=False,alpha=0.7,legend=True)
+    g=sns.kdeplot(ax=ax,data=this_region,x='lat',hue='species',fill=False,common_norm=False,alpha=0.7)
     
     ax.set_title(region + ' (n=%i)'%(len(this_region)),fontsize=8)
     
     ax.set_xlabel('latency (ms)',fontsize=7)
-    ax.set_ylabel('percent',fontsize=7)
+    ax.set_ylabel('density',fontsize=7)
+    
+    #ax.xaxis.set_label_position('top')
     
     ax.tick_params(axis='x',labelsize=7)
     ax.tick_params(axis='y',labelsize=7)
@@ -112,7 +120,7 @@ plt.show()
 
 #%%
 
-for brain_region in fred_brain_region_data.brain_region.unique():
+for brain_region in filt_data.brain_region.unique():
     
     if brain_region in ['LAI', 'vlPFC']:
         
@@ -120,7 +128,7 @@ for brain_region in fred_brain_region_data.brain_region.unique():
     
     elif brain_region == 'mPFC':
         
-        this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+        this_region = filt_data[filt_data.brain_region==brain_region]
     
         p = levene(this_region[this_region.species=='mouse'].lat,this_region[this_region.species=='monkey'].lat)
     
@@ -128,7 +136,7 @@ for brain_region in fred_brain_region_data.brain_region.unique():
         print(p)
     else:
     
-        this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+        this_region = filt_data[filt_data.brain_region==brain_region]
         
         p = levene(this_region[this_region.species=='mouse'].lat,this_region[this_region.species=='monkey'].lat,this_region[this_region.species=='human'].lat)
         
@@ -139,9 +147,9 @@ for brain_region in fred_brain_region_data.brain_region.unique():
 
 from scipy.stats import levene
 
-for brain_region in fred_brain_region_data.brain_region.unique():
+for brain_region in filt_data.brain_region.unique():
     
-    this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+    this_region = filt_data[filt_data.brain_region==brain_region]
     
     mouse = this_region[this_region.species=='mouse'].tau.to_numpy()
     monkey = this_region[this_region.species=='monkey'].tau.to_numpy()
@@ -172,9 +180,9 @@ for brain_region in fred_brain_region_data.brain_region.unique():
         
 #%%
 
-for brain_region in fred_brain_region_data.brain_region.unique():
+for brain_region in filt_data.brain_region.unique():
     
-    this_region = fred_brain_region_data[fred_brain_region_data.brain_region==brain_region]
+    this_region = filt_data[filt_data.brain_region==brain_region]
     
     mouse = this_region[this_region.species=='mouse'].lat.to_numpy()
     monkey = this_region[this_region.species=='monkey'].lat.to_numpy()

@@ -3,12 +3,12 @@
 import pandas as pd
 import numpy as np
 
-set1 = pd.read_csv('python_timescales_dataset1.csv')
-set2 = pd.read_csv('python_timescales_dataset2.csv')
-set3 = pd.read_csv('python_timescales_dataset3.csv')
-set4 = pd.read_csv('python_timescales_dataset4.csv')
-set5 = pd.read_csv('python_timescales_dataset5.csv')
-set6 = pd.read_csv('python_timescales_dataset6.csv')
+set1 = pd.read_csv('/Users/zachz/Documents/timescales_analysis/2023/python_extraction/raw_outputs_new/python_timescales_dataset1.csv')
+set2 = pd.read_csv('/Users/zachz/Documents/timescales_analysis/2023/python_extraction/raw_outputs_new/python_timescales_dataset2.csv')
+set3 = pd.read_csv('/Users/zachz/Documents/timescales_analysis/2023/python_extraction/raw_outputs_new/python_timescales_dataset3.csv')
+set4 = pd.read_csv('/Users/zachz/Documents/timescales_analysis/2023/python_extraction/raw_outputs_new/python_timescales_dataset4.csv')
+set5 = pd.read_csv('/Users/zachz/Documents/timescales_analysis/2023/python_extraction/raw_outputs_new/python_timescales_dataset5.csv')
+set6 = pd.read_csv('/Users/zachz/Documents/timescales_analysis/2023/python_extraction/raw_outputs_new/python_timescales_dataset6.csv')
 
 keep6 = pd.DataFrame()
 
@@ -31,6 +31,7 @@ set6 = keep6
 #%%
 
 combined = pd.concat((set1,set2,set3,set4,set5,set6))
+
 data = combined.drop(["Unnamed: 0"],axis=1)
 
 combined.to_csv('combined_python_timescales.csv',index=False)
