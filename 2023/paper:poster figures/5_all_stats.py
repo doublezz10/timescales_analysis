@@ -9,6 +9,7 @@ import seaborn as sns
 import matplotlib
 
 import statsmodels.formula.api as smf
+import statsmodels.api as sm
 from statsmodels.stats.anova import anova_lm
 
 from scipy import stats
@@ -42,15 +43,19 @@ model = smf.ols('tau~lat',data=fred_brain_region_data)
 
 res = model.fit()
 
-print(res.summary())
+anova = sm.stats.anova_lm(res, typ=2)
+
+anova
 
 #%% Single-unit hierarchy
 
-model = smf.ols('tau ~ species + brain_region',data=fred_brain_region_data)
+model = smf.ols('tau ~ species * brain_region',data=fred_brain_region_data)
 
 res = model.fit()
 
-print(res.summary())
+anova = sm.stats.anova_lm(res, typ=1)
+
+anova
 
 #%%
 
@@ -58,7 +63,9 @@ model2 = smf.ols('tau ~ species + brain_region + FR',data=fred_brain_region_data
 
 res2 = model2.fit()
 
-print(res2.summary())
+anova = sm.stats.anova_lm(res2, typ=2)
+
+anova
 
 #%%
 
@@ -70,7 +77,9 @@ model = smf.ols('lat ~ species + brain_region',data=fred_brain_region_data)
 
 res = model.fit()
 
-print(res.summary())
+anova = sm.stats.anova_lm(res, typ=2)
+
+anova
 
 #%%
 
@@ -78,7 +87,9 @@ model2 = smf.ols('lat ~ species + brain_region + FR',data=fred_brain_region_data
 
 res2 = model2.fit()
 
-print(res2.summary())
+anova = sm.stats.anova_lm(res2, typ=2)
+
+anova
 
 #%%
 
@@ -155,7 +166,9 @@ model = smf.ols('tau ~ granularity', data = ofc_lai_vl)
 
 res = model.fit()
 
-print(res.summary())
+anova = sm.stats.anova_lm(res, typ=2)
+
+anova
 
 
 #%%
@@ -164,7 +177,9 @@ model = smf.ols('tau ~ area', data = ofc_lai_vl)
 
 res2 = model.fit()
 
-print(res2.summary())
+anova = sm.stats.anova_lm(res2, typ=2)
+
+anova
 
 #%%
 
@@ -176,7 +191,9 @@ model = smf.ols('lat ~ granularity', data = ofc_lai_vl)
 
 res = model.fit()
 
-print(res.summary())
+anova = sm.stats.anova_lm(res, typ=2)
+
+anova
 
 
 #%%
@@ -185,7 +202,9 @@ model = smf.ols('lat ~ area', data = ofc_lai_vl)
 
 res2 = model.fit()
 
-print(res2.summary())
+anova = sm.stats.anova_lm(res2, typ=2)
+
+anova
 #%%
 
 print(anova_lm(res,res2))
@@ -220,7 +239,9 @@ model = smf.ols('lat ~ species + brain_region',data=fred_brain_region_data)
 
 res = model.fit()
 
-print(res.summary())
+anova = sm.stats.anova_lm(res, typ=2)
+
+anova
 
 #%%
 
@@ -228,7 +249,9 @@ model2 = smf.ols('lat ~ species + brain_region + zscore_fr',data=fred_brain_regi
 
 res2 = model2.fit()
 
-print(res2.summary())
+anova = sm.stats.anova_lm(res2, typ=2)
+
+anova
 
 #%%
 
@@ -242,7 +265,9 @@ model = smf.ols('tau ~ species + brain_region',data=fred_brain_region_data)
 
 res = model.fit()
 
-print(res.summary())
+anova = sm.stats.anova_lm(res, typ=2)
+
+anova
 
 #%%
 
@@ -250,7 +275,9 @@ model2 = smf.ols('tau ~ species + brain_region + zscore_fr_ds',data=fred_brain_r
 
 res2 = model2.fit()
 
-print(res2.summary())
+anova = sm.stats.anova_lm(res2, typ=2)
+
+anova
 
 #%%
 
@@ -262,7 +289,9 @@ model = smf.ols('lat ~ species + brain_region',data=fred_brain_region_data)
 
 res = model.fit()
 
-print(res.summary())
+anova = sm.stats.anova_lm(res, typ=2)
+
+anova
 
 #%%
 
@@ -270,7 +299,9 @@ model2 = smf.ols('lat ~ species + brain_region + zscore_fr_ds',data=fred_brain_r
 
 res2 = model2.fit()
 
-print(res2.summary())
+anova = sm.stats.anova_lm(res2, typ=2)
+
+anova
 
 #%%
 

@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+import statsmodels.api as sm
+
+
 import statsmodels.formula.api as smf
 
 
@@ -160,6 +163,8 @@ for animal in ofc_lai_vl.animID.unique():
 
     f = interpolate.LinearNDInterpolator(points, zs)
     zn = f(grid_xn, grid_yn)
+    
+    plt.style.use('seaborn')
 
     plt.figure(figsize=(5,4))
 
@@ -177,11 +182,34 @@ for animal in ofc_lai_vl.animID.unique():
 
     #plt.legend(bbox_to_anchor=(-0.2, 1.0),loc='upper right',prop={'size':7})
 
-    sns.scatterplot(x='ML',y='AP',hue='area',data=this_animal,alpha=0.2)
+    #sns.scatterplot(x='ML',y='AP',hue='area',data=this_animal,alpha=0.2)
     plt.legend(bbox_to_anchor=(-0.5, 1.0), loc='upper left',prop={'size':7})
     if animal == 1:
         plt.gca().invert_xaxis()
+        
+        plt.savefig('mk2ofctau.svg',dpi=450)
+    else: 
+        plt.savefig('mk1ofctau.svg',dpi=450)
 
+    plt.show()
+    
+    plt.style.use('default')
+    
+    plt.figure(figsize=(4.3,2))
+    sns.lineplot(data=ofc_lai_vl_,x='ML',y='tau')
+    if animal == 1:
+        plt.savefig('mk2_ml.svg',dpi=450)
+        plt.gca().invert_xaxis()
+    else:
+        plt.savefig('mk1_ml.svg',dpi=450)
+    plt.show()
+    
+    plt.figure(figsize=(4.3,2))
+    sns.lineplot(data=ofc_lai_vl_,x='AP',y='tau')
+    if animal == 1:
+        plt.savefig('mk2_ap.svg',dpi=450)
+    else:
+        plt.savefig('mk1_ap.svg',dpi=450)
     plt.show()
 
 #%%
@@ -190,7 +218,9 @@ model = smf.ols('tau ~ AP * ML',data=avg)
 
 res = model.fit()
 
-print(res.summary())
+anova = sm.stats.anova_lm(res, typ=1)
+
+anova
 
 # %%
 
@@ -223,7 +253,7 @@ plt.xticks(fontsize=7)
 plt.yticks(fontsize=7)
 
 cbar = plt.colorbar()
-cbar.set_label(label='timescale (ms)',size=7)
+cbar.set_label(label='latency (ms)',size=7)
 cbar.ax.set_yticklabels([0,200,400,600,800,1000],fontsize=7)
 
 sns.scatterplot(data=grouped_df,x='ML',y='AP',hue='lat',palette='inferno',hue_norm=(0,200),legend=True)
@@ -265,7 +295,7 @@ plt.pcolor(grid_xn,grid_yn,fitvals,shading='auto',cmap='Greys',vmin=25,vmax=105)
 sns.scatterplot(x='ML',y='AP',hue='area',data=this_animal,alpha=0.2)
 plt.gca().invert_xaxis()
 cbar = plt.colorbar()
-cbar.set_label(label='timescale (ms)',size=7)
+cbar.set_label(label='latency (ms)',size=7)
 cbar.ax.set_yticks([25,45,65,85,105])
 cbar.ax.set_yticklabels([25,45,65,85,105],fontsize=7)
 plt.xlabel('ML (mm)',fontsize=7)
@@ -310,4 +340,10 @@ plt.xticks(fontsize=7)
 plt.yticks(fontsize=7)
 plt.show()
 
+#%%
+
+
+
 # %%
+
+
